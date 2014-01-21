@@ -8,7 +8,7 @@ require "pstore"
 require "open3"
 
 GNUPLOT = ENV["GNUPLOT"]
-BASE_DIR = File.dirname(__FILE__)
+CACHE_DIR = ENV["BICYCLE_TOUR_MANAGER_CACHE"] || File.dirname(__FILE__)
 
 PEAK_SEARCH_DISTANCE = 2.5
 PEAK_LIMIT_DISTANCE = 0.5
@@ -46,7 +46,7 @@ class Route
 		# ルート探索結果もキャッシュしておく
 		route_result = nil
 
-		cache = PStore.new("#{BASE_DIR}/cache_route.db")
+		cache = PStore.new("#{CACHE_DIR}/cache_route.db")
 		cache.transaction do
 			if cache[key].nil?
 				request = "http://maps.googleapis.com/maps/api/directions/json"
@@ -64,7 +64,7 @@ class Route
 
 		# 高度情報はキャッシュしておく
 		points = route_result["overview_polyline"]["points"]
-		cache = PStore.new("#{BASE_DIR}/cache_elevation.db")
+		cache = PStore.new("#{CACHE_DIR}/cache_elevation.db")
 		cache.transaction do
 			if cache[points].nil?
 				request = "http://maps.googleapis.com/maps/api/elevation/json"
@@ -135,7 +135,7 @@ end
 def parse_geocode(geocode)
 	data = nil
 
-	cache = PStore.new("#{BASE_DIR}/cache_geocode.db")
+	cache = PStore.new("#{CACHE_DIR}/cache_geocode.db")
 	cache.transaction do
 		if cache[geocode].nil?
 			res = Http::fetch_https(%Q|https://maps.google.co.jp/maps?saddr=1&daddr=2&geocode=#{geocode}%3B#{geocode}&dirflg=w|)
@@ -457,7 +457,7 @@ def plot(routes, outfile)
 		end
 	end; end
 
-	Open3.popen3( GNUPLOT + " -persist" ) do |pipe, unused1, unused2, thread|
+	Open3.popen3( "\"#{GNUPLOT}\" -persist" ) do |pipe, unused1, unused2, thread|
 		unused1.close
 		unused2.close
 
