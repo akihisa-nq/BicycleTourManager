@@ -279,7 +279,8 @@ File.open( INPUT_FILE, "r:utf-8" ) do |file|
 				current.dest = $2.strip
 
 				if current.road[current.orig].nil? || current.road[current.dest].nil?
-					throw Exception.new("間違った方向が PC#{cource.count} のページ #{cource.last.pages.count}、#{cource.last.pages.last.nodes.count} #{current.name} にあります。")
+					$stderr << "間違った方向が PC#{cource.count} のページ #{cource.last.pages.count}、#{cource.last.pages.last.nodes.count} #{current.name} にあります。\n"
+					exit 1
 				end
 			end
 		else
