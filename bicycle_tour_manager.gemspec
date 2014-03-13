@@ -2,7 +2,7 @@
 
 Gem::Specification.new do |spec|
 	spec.name = "bicycle_tour_manager"
-	spec.version = "0.0.1"
+	spec.version = "0.0.2"
 	spec.summary = "自転車旅管理ツール"
 	spec.author = "Akihisa Higuchi"
 	spec.email = "akihisa.nq@gmail.com"

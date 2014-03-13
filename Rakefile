@@ -2,7 +2,7 @@
 
 require "fileutils"
 
-GEM_NAME = "bicycle_tour_manager-0.0.1.gem"
+GEM_NAME = "bicycle_tour_manager-0.0.2.gem"
 
 images = []
 %w{dest normal orig}.each do |type|
@@ -25,5 +25,5 @@ end
 task :default => GEM_NAME
 
 task :clean do
-	FileUtils.rm(images, :force => true)
+	FileUtils.rm(images << GEM_NAME, :force => true)
 end
