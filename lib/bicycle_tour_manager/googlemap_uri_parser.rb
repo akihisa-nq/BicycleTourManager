@@ -7,6 +7,17 @@ require "bicycle_tour_manager/route"
 require "bicycle_tour_manager/http_helper"
 
 module BTM
+	class GoogleMapUri
+		def initialize
+			@start = ""
+			@dest = ""
+			@via = []
+			@geocode = Point.new(0.0, 0.0, 0.0)
+		end
+
+		attr_accessor :start, :dest, :via, :geocode
+	end
+
 	class GoogleMapUriParser
 		def initialize(geocode_cache)
 			@geocode_cache = geocode_cache
@@ -22,17 +33,21 @@ module BTM
 		def create_routes(obj)
 			route = Route.new
 
-			path = Path.new(obj["geocode"][0])
+			path = Path.new
+			path.start = obj.geocode[0]
+
 			current = 0
 			via_current = 0
-			(obj["geocode"].size - 1).times do |i|
-				if obj["via"].size > via_current && obj["via"][via_current] == i + 1
-					path.way_points << obj["geocode"][i + 1]
+			(obj.geocode.size - 1).times do |i|
+				if obj.via.size > via_current && obj.via[via_current] == i + 1
+					path.way_points << obj.geocode[i + 1]
 					via_current += 1
 				else
-					path.end = obj["geocode"][i + 1]
+					path.end = obj.geocode[i + 1]
 					route.path_list << path
-					path = Path.new(obj["geocode"][i + 1])
+
+					path = Path.new
+					path.start = obj.geocode[i + 1]
 				end
 			end
 
@@ -40,21 +55,22 @@ module BTM
 		end
 
 		def split_uri(uri)
-			data = URI.parse(uri)
-			data = Hash[*data.query.split(/[&=]/)]
+			parsed_uri = URI.parse(uri)
+			data = Hash[*parsed_uri.query.split(/[&=]/)]
+			uri = GoogleMapUri.new
 
-			data["saddr"] = URI.decode(data["saddr"])
-			data["daddr"] = URI.decode(data["daddr"]).split("+to:")
+			uri.start = URI.decode(data["saddr"])
+			uri.dest = URI.decode(data["daddr"]).split("+to:")
 
 			if data.include?("via")
-				data["via"] = data["via"].split(",").map{|i| i.to_i } 
+				uri.via = data["via"].split(",").map{|i| i.to_i } 
 			else
-				data["via"] = []
+				uri.via = []
 			end
 
-			data["geocode"] = URI.decode(data["geocode"]).split(";").map {|i| parse_geocode(i) }
+			uri.geocode = URI.decode(data["geocode"]).split(";").map {|i| parse_geocode(i) }
 
-			data
+			uri
 		end
 
 		def parse_geocode(geocode)
@@ -65,9 +81,9 @@ module BTM
 				if cache[geocode].nil?
 					res = Http::fetch_https(%Q|https://maps.google.co.jp/maps?saddr=1&daddr=2&geocode=#{geocode}%3B#{geocode}&dirflg=w|)
 					if res =~ /latlng:{lat:([\d\.]+),lng:([\d\.]+)}/
-						data = [ $1.to_f, $2.to_f ]
+						data = Point.new($1.to_f, $2.to_f)
 					else
-						data = [ 0.0, 0.0 ]
+						data = Point.new(0.0, 0.0)
 					end
 
 					cache[geocode] = data

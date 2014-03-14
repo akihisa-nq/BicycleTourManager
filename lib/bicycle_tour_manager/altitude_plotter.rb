@@ -43,25 +43,25 @@ module BTM
 				prev_peak = nil
 
 				tmp.each.with_index do |pt, i|
-					graph << "#{pt[:dis]} #{pt[:ele]}\n"
+					graph << "#{pt.distance_from_start} #{pt.ele}\n"
 
-					if pt.include?(:waypoint)
+					if pt.waypoint?
 						if prev_waypoint.nil? \
-						  || pt[:dis] - prev_waypoint[:dis] >= 2.5 \
-						  || (pt[:ele] - prev_waypoint[:ele]).abs >= 100.0
-							waypoint << "#{pt[:dis]} #{pt[:ele]} ★#{pt[:waypoint]}\\n\n"
+						  || pt.distance_from_start - prev_waypoint.distance_from_start >= 2.5 \
+						  || (pt.ele - prev_waypoint.ele).abs >= 100.0
+							waypoint << "#{pt.distance_from_start} #{pt.ele} ★#{pt.waypoint_index}\\n\n"
 							prev_waypoint = pt
 						end
 					end
 
-					if pt.include?(:min_max)
-						if pt[:min_max] == :mark_max
-							diff_dis = pt[:dis] - prev_peak[:dis]
-							diff_ele = pt[:ele] - prev_peak[:ele]
+					if pt.min_max_marked?
+						if pt.min_max == :mark_max
+							diff_dis = pt.distance_from_start - prev_peak.distance_from_start
+							diff_ele = pt.ele - prev_peak.ele
 							grad_val = diff_ele / diff_dis / 10.0
 
 							if diff_dis >= PEAK_LIMIT_DISTANCE && grad_val >= PEAK_LIMIT_GRADIENT || (grad_val >= PEAK_LIMIT_GRADIENT_LONG && diff_dis >= PEAK_LIMIT_DISTANCE_LONG)
-								peak << "#{pt[:dis]} #{pt[:ele]} #{pt[:ele].to_i}\n"
+								peak << "#{pt.distance_from_start} #{pt.ele} #{pt.ele.to_i}\n"
 							end
 						end
 
@@ -73,15 +73,15 @@ module BTM
 			File.open(gradient_data, "w") do |grad|
 			File.open(gradient_label_data, "w") do |grad_label|
 				grads.each do |e|
-					diff_dis = e[:end][:dis] - e[:start][:dis]
+					diff_dis = e[:end].distance_from_start - e[:start].distance_from_start
 
 					if e[:grad] >= GRAD_LIMIT_GRADIENT || (e[:grad] >= GRAD_LIMIT_GRADIENT_LONG && diff_dis >= GRAD_LIMIT_DISTANCE_LONG)
-						grad << "#{e[:start][:dis]} #{e[:start][:ele]} -50 #{e[:start][:dis].round}\\n+#{diff_dis.round}\n"
-						grad << "#{e[:end][:dis]} #{e[:end][:ele]}\n"
+						grad << "#{e[:start].distance_from_start} #{e[:start].ele} -50 #{e[:start].distance_from_start.round}\\n+#{diff_dis.round}\n"
+						grad << "#{e[:end].distance_from_start} #{e[:end].ele}\n"
 						grad << "\n"
 
-						dis = (e[:start][:dis] + e[:end][:dis]) / 2
-						ele = (e[:start][:ele] + e[:end][:ele]) / 2
+						dis = (e[:start].distance_from_start + e[:end].distance_from_start) / 2
+						ele = (e[:start].ele + e[:end].ele) / 2
 						grad_label << "#{dis} #{ele} #{e[:grad]}%\n"
 					end
 				end
@@ -139,8 +139,8 @@ module BTM
 
 		def check_peak(tmp)
 			# 極小/極大をマークする
-			tmp[0][:min_max] = :mark
-			tmp[-1][:min_max] = :mark
+			tmp[0].min_max = :mark
+			tmp[-1].min_max = :mark
 
 			prev = 0
 			prev_min = 0
@@ -149,13 +149,13 @@ module BTM
 				check_max = true
 
 				# 最小値チェック
-				prev_min = i if tmp[prev_min][:ele] > tmp[i][:ele]
+				prev_min = i if tmp[prev_min].ele > tmp[i].ele
 
 				# 以前の点
 				j = i - 1
 				while j >= 0 && (check_min || check_max) && Path.calc_distance(tmp[i], tmp[j]) < PEAK_SEARCH_DISTANCE
-					check_min = false if tmp[j][:ele] <= tmp[i][:ele]
-					check_max = false if tmp[j][:ele] >= tmp[i][:ele]
+					check_min = false if tmp[j].ele <= tmp[i].ele
+					check_max = false if tmp[j].ele >= tmp[i].ele
 					j -= 1
 				end
 				next unless check_min || check_max
@@ -163,32 +163,32 @@ module BTM
 				# 以後の点
 				j = i + 1
 				while j < tmp.length && (check_min || check_max) && Path.calc_distance(tmp[i], tmp[j]) < PEAK_SEARCH_DISTANCE
-					check_min = false if tmp[j][:ele] <= tmp[i][:ele]
-					check_max = false if tmp[j][:ele] >= tmp[i][:ele]
+					check_min = false if tmp[j].ele <= tmp[i].ele
+					check_max = false if tmp[j].ele >= tmp[i].ele
 					j += 1
 				end
 				next unless check_min || check_max
 
 				# マークする
 				if check_min
-					if tmp[prev][:min_max] == :mark_min
-						if tmp[prev][:ele] < tmp[i][:ele]
+					if tmp[prev].min_max == :mark_min
+						if tmp[prev].ele < tmp[i].ele
 							# マーク不要
 						else
-							tmp[prev].delete(:min_max)
-							tmp[i][:min_max] = :mark_min
+							tmp[prev].min_max = nil
+							tmp[i].min_max = :mark_min
 							prev = i
 						end
 					else
-						tmp[i][:min_max] = :mark_min
+						tmp[i].min_max = :mark_min
 						prev = i
 					end
 				else
-					if prev_min > 0 && tmp[prev][:min_max] == :mark_max
-						tmp[prev_min][:min_max] = :mark_min
+					if prev_min > 0 && tmp[prev].min_max == :mark_max
+						tmp[prev_min].min_max = :mark_min
 					end
 
-					tmp[i][:min_max] = :mark_max
+					tmp[i].min_max = :mark_max
 					prev = i
 				end
 
@@ -202,16 +202,16 @@ module BTM
 			result = []
 
 			calc = lambda do |i, j|
-				a = (tmp[j][:ele] - tmp[i][:ele]) / (tmp[j][:dis] - tmp[i][:dis])
-				b = tmp[i][:ele] - a * tmp[i][:dis]
+				a = (tmp[j].ele - tmp[i].ele) / (tmp[j].distance_from_start - tmp[i].distance_from_start)
+				b = tmp[i].ele - a * tmp[i].distance_from_start
 
-				if tmp[j][:dis] - tmp[i][:dis] > 1.0
+				if tmp[j].distance_from_start - tmp[i].distance_from_start > 1.0
 					data = 0
 					index = 0
 
 					((i+1)..(j-1)).each do |k|
-						ele_calc = a * tmp[k][:dis] + b
-						d = (tmp[k][:ele] - ele_calc).abs
+						ele_calc = a * tmp[k].distance_from_start + b
+						d = (tmp[k].ele - ele_calc).abs
 
 						if d >= data
 							data = d
@@ -233,8 +233,8 @@ module BTM
 
 			prev = 0
 			tmp.each.with_index do |e, i|
-				unless e[:min_max].nil?
-					if e[:min_max] == :mark_max
+				unless e.min_max.nil?
+					if e.min_max == :mark_max
 						ret = calc.call(prev, i)
 
 						current = 0

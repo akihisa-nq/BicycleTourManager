@@ -45,6 +45,10 @@ module BTM
 					else
 						state = STATE_METADATA if state == STATE_METADATA_TIME
 					end
+				when "trkseg"
+				when "trkpt"
+				when "ele"
+
 				when "#text"
 					case state
 					when STATE_TRK_NAME
@@ -68,8 +72,8 @@ EOF
 				tour.routes.each do |pc|
 					pc.path_list.each.with_index do |route, i|
 						file << <<EOF
-	<wpt lat="#{route.steps[0][:lat]}" lon="#{route.steps[0][:lon]}">
-		<ele>#{route.steps[0][:ele]}</ele>
+	<wpt lat="#{route.steps[0].lat}" lon="#{route.steps[0].lon}">
+		<ele>#{route.steps[0].ele}</ele>
 		<name>PC#{pc.index} - ★#{i + 1}</name>
 	</wpt>
 EOF
@@ -77,8 +81,8 @@ EOF
 				end
 
 				file << <<EOF
-	<wpt lat="#{tour.routes[-1].path_list[-1].steps[-1][:lat]}" lon="#{tour.routes[-1].path_list[-1].steps[-1][:lon]}">
-		<ele>#{tour.routes[-1].path_list[-1].steps[-1][:ele]}</ele>
+	<wpt lat="#{tour.routes[-1].path_list[-1].steps[-1].lat}" lon="#{tour.routes[-1].path_list[-1].steps[-1].lon}">
+		<ele>#{tour.routes[-1].path_list[-1].steps[-1].ele}</ele>
 		<name>PC#{tour.routes[-1].index} - ★#{tour.routes[-1].path_list.size + 1}</name>
 	</wpt>
 EOF
@@ -95,8 +99,8 @@ EOF
 				pc.path_list.each do |route|
 					route.steps.each do |s|
 						file << <<EOF
-			<trkpt lat="#{s[:lat]}" lon="#{s[:lon]}">
-				<ele>#{s[:ele]}</ele>
+			<trkpt lat="#{s.lat}" lon="#{s.lon}">
+				<ele>#{s.ele}</ele>
 				<time>9999-12-31T00:00:00Z</time>
 			</trkpt>
 EOF

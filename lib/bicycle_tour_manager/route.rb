@@ -1,6 +1,40 @@
 # coding: utf-8
 
+require "yaml"
+
 module BTM
+	class Point
+		def initialize(lat, lon, ele=0.0)
+			@lat = lat
+			@lon = lon
+			@ele = ele
+			@waypoint_index = -1
+			@distance_from_start = 0.0
+			@min_max = nil # nil, :mark, :mark_min, :mark_max
+		end
+
+		def self.from_params(params)
+			Point.new(
+				params["lat"],
+				params["lng"]
+				)
+		end
+
+		def pack
+			"#{@lat},#{@lon}"
+		end
+
+		def waypoint?
+			@waypoint_index >= 0
+		end
+
+		def min_max_marked?
+			! @min_max.nil?
+		end
+
+		attr_accessor :lat, :lon, :ele, :waypoint_index, :distance_from_start, :min_max
+	end
+
 	class Path
 		R = 6371.0008 # Earth volumetric radius
 
@@ -9,30 +43,32 @@ module BTM
 		end
 
 		def self.calc_distance(p1, p2)
-			lat1, lon1 = [p1[:lat], p1[:lon]].map {|a| a * Math::PI / 180.0}
-			lat2, lon2 = [p2[:lat], p2[:lon]].map {|a| a * Math::PI / 180.0}
+			lat1, lon1 = [p1.lat, p1.lon].map {|a| a * Math::PI / 180.0}
+			lat2, lon2 = [p2.lat, p2.lon].map {|a| a * Math::PI / 180.0}
 			deltalat = lat2 - lat1
 			deltalon = lon2 - lon1
 			h = haversin(deltalat) + Math.cos(lat1) * Math.cos(lat2) * haversin(deltalon)
 			2 * R * Math.asin(Math.sqrt(h))
 		end
 
-		def initialize(start)
-			@start = start
-			@end = 0
+		def initialize
+			@start = Point.new(0.0, 0.0, 0.0)
+			@end = Point.new(0.0, 0.0, 0.0)
 			@way_points = []
 			@distance
 			@steps = []
 		end
 
+		# この関数を呼ぶ前に start, end, waypoints を設定すること
 		def fetch_elevation(route_cache, elevation_cache)
 			param = {
-				"origin" => @start.join(","),
-				"destination" => @end.join(","),
+				"origin" => @start.pack,
+				"destination" => @end.pack,
 				"sensor" => false,
 				"mode" => "walking"
 			}
-			param["waypoints"] = @way_points.map {|i| i.join(",") }.join("|") if @way_points.length > 0
+			param["waypoints"] = @way_points.map {|i| i.pack }.join("|") if @way_points.length > 0
+
 			key = "S:#{param["origin"]}, D:#{param["destination"]}, W:#{param["waypoints"]}"
 
 			# ルート探索結果もキャッシュしておく
@@ -66,7 +102,11 @@ module BTM
 					}
 
 					ret = YAML.load(BTM::Http::fetch(request, param))["results"]
-					@steps = ret.map {|i| { :lat => i["location"]["lat"], :lon => i["location"]["lng"], :ele => i["elevation"] } }
+					@steps = ret.map do |i|
+							pt = Point.from_params(i["location"])
+							pt.ele = i["elevation"]
+							pt
+						end
 
 					cache[points] = @steps
 					cache.commit
@@ -76,8 +116,8 @@ module BTM
 			end
 		end
 
-		attr_accessor :end
-		attr_reader :start, :way_points, :steps, :distance
+		attr_accessor :start, :end
+		attr_reader :way_points, :steps, :distance
 	end
 
 	class Route
@@ -89,19 +129,19 @@ module BTM
 		def flatten
 			tmp = @path_list.each.with_index.map do |r, i|
 				steps = r.steps[0..-2]
-				steps[0][:waypoint] = i + 1
+				steps[0].waypoint_index = i + 1
 				steps
 			end
 			tmp = tmp.inject(:+)
 
 			tmp << @path_list[-1].steps[-1]
-			tmp[-1][:waypoint] = @path_list.size + 1
+			tmp[-1].waypoint_index = @path_list.size + 1
 
 			prev = tmp[0]
 			distance = 0.0
 			tmp.each do |r|
 				distance += Path.calc_distance(prev, r)
-				r[:dis] = distance
+				r.distance_from_start = distance
 				prev = r
 			end
 
