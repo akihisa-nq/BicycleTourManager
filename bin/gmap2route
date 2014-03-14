@@ -29,88 +29,6 @@ GRAD_LIMIT_GRADIENT_LONG = 2.0
 PLOT_ELEVATION_MIN = -100
 PLOT_ELEVATION_MAX = 1100
 
-class Route
-	def initialize(start)
-		@start = start
-		@end = 0
-		@way_points = []
-		@distance
-		@steps = []
-	end
-
-	def fetch
-		param = {
-			"origin" => @start.join(","),
-			"destination" => @end.join(","),
-			"sensor" => false,
-			"mode" => "walking"
-		}
-		param["waypoints"] = @way_points.map {|i| i.join(",") }.join("|") if @way_points.length > 0
-		key = "S:#{param["origin"]}, D:#{param["destination"]}, W:#{param["waypoints"]}"
-
-		# ルート探索結果もキャッシュしておく
-		route_result = nil
-
-		cache = PStore.new("#{CACHE_DIR}/cache_route.db")
-		cache.transaction do
-			if cache[key].nil?
-				request = "http://maps.googleapis.com/maps/api/directions/json"
-				ret = YAML.load(BTM::Http::fetch(request, param))
-				route_result = ret["routes"][0]
-
-				cache[key] = route_result
-				cache.commit
-			else
-				route_result = cache[key]
-			end
-		end
-
-		@distance = route_result["legs"].map {|i| i["distance"]["value"].to_f / 1000.0 }.inject(:+)
-
-		# 高度情報はキャッシュしておく
-		points = route_result["overview_polyline"]["points"]
-		cache = PStore.new("#{CACHE_DIR}/cache_elevation.db")
-		cache.transaction do
-			if cache[points].nil?
-				request = "http://maps.googleapis.com/maps/api/elevation/json"
-				param = {
-					"sensor" => "false",
-					"locations" => "enc:" + points
-				}
-
-				ret = YAML.load(BTM::Http::fetch(request, param))["results"]
-				@steps = ret.map {|i| { :lat => i["location"]["lat"], :lon => i["location"]["lng"], :ele => i["elevation"] } }
-
-				cache[points] = @steps
-				cache.commit
-			else
-				@steps = cache[points]
-			end
-		end
-	end
-
-	attr_accessor :end
-	attr_reader :start, :way_points, :steps, :distance
-end
-
-def get_routes(obj)
-	route = Route.new(obj["geocode"][0])
-	routes = []
-	current = 0
-	via_current = 0
-	(obj["geocode"].size - 1).times do |i|
-		if obj["via"].size > via_current && obj["via"][via_current] == i + 1
-			route.way_points << obj["geocode"][i + 1]
-			via_current += 1
-		else
-			route.end = obj["geocode"][i + 1]
-			routes << route
-			route = Route.new(obj["geocode"][i + 1])
-		end
-	end
-	routes
-end
-
 def haversin(theta)
 	Math.sin( 0.5 * theta ) ** 2
 end
@@ -496,9 +414,13 @@ File.open(INPUT_FILE, "r:utf-8") do |file|
 		line.strip!
 
 		if line =~ /^"PC(\d+)":(.*)$/
-			obj = gmap_uri_parser.parse_uri($2)
-			routes = get_routes(obj)
-			routes.each {|r| r.fetch }
+			routes = gmap_uri_parser.parse_uri($2)
+			routes.each do |r|
+				r.fetch(
+					"#{CACHE_DIR}/cache_route.db",
+					"#{CACHE_DIR}/cache_elevation.db"
+					)
+			end
 			plan << [$1.to_i, routes]
 		end
 	end

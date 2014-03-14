@@ -4,13 +4,40 @@ require "uri"
 require "http_helper"
 require "pstore"
 
+require "route"
+
 module BTM
 	class GoogleMapUriParser
-		def initialize(cache_file)
-			@cache_file = cache_file
+		def initialize(geocode_cache)
+			@geocode_cache = geocode_cache
 		end
 
 		def parse_uri(uri)
+			obj = split_uri(uri)
+			create_routes(obj)
+		end
+
+		private
+
+		def create_routes(obj)
+			route = Route.new(obj["geocode"][0])
+			routes = []
+			current = 0
+			via_current = 0
+			(obj["geocode"].size - 1).times do |i|
+				if obj["via"].size > via_current && obj["via"][via_current] == i + 1
+					route.way_points << obj["geocode"][i + 1]
+					via_current += 1
+				else
+					route.end = obj["geocode"][i + 1]
+					routes << route
+					route = Route.new(obj["geocode"][i + 1])
+				end
+			end
+			routes
+		end
+
+		def split_uri(uri)
 			data = URI.parse(uri)
 			data = Hash[*data.query.split(/[&=]/)]
 
@@ -28,14 +55,12 @@ module BTM
 			data
 		end
 
-		private
-
 		def parse_geocode(geocode)
 			data = nil
 
-			@cache = PStore.new(@cache_file)
-			@cache.transaction do
-				if @cache[geocode].nil?
+			cache = PStore.new(@geocode_cache)
+			cache.transaction do
+				if cache[geocode].nil?
 					res = Http::fetch_https(%Q|https://maps.google.co.jp/maps?saddr=1&daddr=2&geocode=#{geocode}%3B#{geocode}&dirflg=w|)
 					if res =~ /latlng:{lat:([\d\.]+),lng:([\d\.]+)}/
 						data = [ $1.to_f, $2.to_f ]
@@ -43,10 +68,10 @@ module BTM
 						data = [ 0.0, 0.0 ]
 					end
 
-					@cache[geocode] = data
-					@cache.commit
+					cache[geocode] = data
+					cache.commit
 				else
-					data = @cache[geocode]
+					data = cache[geocode]
 				end
 			end
 
