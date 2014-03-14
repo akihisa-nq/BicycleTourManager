@@ -79,13 +79,7 @@ module BTM
 			cache = PStore.new(@geocode_cache)
 			cache.transaction do
 				if cache[geocode].nil?
-					res = Http::fetch_https(%Q|https://maps.google.co.jp/maps?saddr=1&daddr=2&geocode=#{geocode}%3B#{geocode}&dirflg=w|)
-					if res =~ /latlng:{lat:([\d\.]+),lng:([\d\.]+)}/
-						data = Point.new($1.to_f, $2.to_f)
-					else
-						data = Point.new(0.0, 0.0)
-					end
-
+					data = Http::fetch_https(%Q|https://maps.google.co.jp/maps?saddr=1&daddr=2&geocode=#{geocode}%3B#{geocode}&dirflg=w|)
 					cache[geocode] = data
 					cache.commit
 				else
@@ -93,7 +87,11 @@ module BTM
 				end
 			end
 
-			data
+			if data =~ /latlng:{lat:([\d\.]+),lng:([\d\.]+)}/
+				Point.new($1.to_f, $2.to_f)
+			else
+				Point.new(0.0, 0.0)
+			end
 		end
 	end
 end

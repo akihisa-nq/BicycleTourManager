@@ -92,6 +92,8 @@ module BTM
 
 			# 高度情報はキャッシュしておく
 			points = route_result["overview_polyline"]["points"]
+			elevation_result = nil
+
 			cache = PStore.new(elevation_cache)
 			cache.transaction do
 				if cache[points].nil?
@@ -101,19 +103,20 @@ module BTM
 						"locations" => "enc:" + points
 					}
 
-					ret = YAML.load(BTM::Http::fetch(request, param))["results"]
-					@steps = ret.map do |i|
-							pt = Point.from_params(i["location"])
-							pt.ele = i["elevation"]
-							pt
-						end
+					elevation_result = YAML.load(BTM::Http::fetch(request, param))["results"]
 
-					cache[points] = @steps
+					cache[points] = elevation_result
 					cache.commit
 				else
-					@steps = cache[points]
+					elevation_result = cache[points]
 				end
 			end
+
+			@steps = elevation_result.map do |i|
+					pt = Point.from_params(i["location"])
+					pt.ele = i["elevation"]
+					pt
+				end
 		end
 
 		attr_accessor :start, :end
