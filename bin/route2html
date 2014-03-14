@@ -364,10 +364,11 @@ EOF
 <h1>PC#{pc.num} #{i + 1}/#{pc.pages.length}</h1>
 EOF
 
-			if File.exist?("PC#{pc.num}.png")
+			pc_alt_image = File.join(INPUT_DIR, "PC#{pc.num}.png")
+			if File.exist?(pc_alt_image)
 				file << <<EOF
 	<div style="text-align:center">
-		<img src="file:///#{INPUT_DIR.gsub("\\", "/")}/PC#{pc.num}.png" style="width:100%" />
+		<img src="file:///#{pc_alt_image.gsub("\\", "/")}" style="width:100%" />
 	</div>
 EOF
 			end
