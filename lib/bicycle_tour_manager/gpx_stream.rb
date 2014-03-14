@@ -1,6 +1,7 @@
 # coding: utf-8
 
 require "nokogiri"
+require "time"
 
 require "bicycle_tour_manager/route"
 
