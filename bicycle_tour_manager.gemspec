@@ -8,6 +8,8 @@ Gem::Specification.new do |spec|
 	spec.email = "akihisa.nq@gmail.com"
 	spec.homepage = "https://github.com/akihisa-nq/BicycleTourManager"
 	spec.files = Dir.glob("{bin,lib,data,samples}/**/*") << "README.txt"
+	spec.executables = Dir.glob("bin/**/*").map { |f| File.basename(f) }
+	spec.require_paths = ["lib"]
 	spec.test_files = []
 	spec.has_rdoc = false
 end
