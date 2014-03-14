@@ -6,6 +6,8 @@ $: << File.join(File.dirname(__FILE__), "../lib")
 require "bicycle_tour_manager"
 
 GNUPLOT = ENV["GNUPLOT"]
+FONT = ENV["FONT"]
+
 CACHE_DIR = ENV["BICYCLE_TOUR_MANAGER_CACHE"] || File.dirname(__FILE__)
 
 PLOT_ELEVATION_MIN = -100
@@ -37,6 +39,7 @@ tour.sort!
 plotter = BTM::AltitudePloter.new(GNUPLOT, INPUT_DIR)
 plotter.elevation_max = PLOT_ELEVATION_MAX
 plotter.elevation_min = PLOT_ELEVATION_MIN
+plotter.font = FONT
 
 tour.routes.each do |route|
 	plotter.plot(route, "#{INPUT_DIR}/PC#{route.index}.png")

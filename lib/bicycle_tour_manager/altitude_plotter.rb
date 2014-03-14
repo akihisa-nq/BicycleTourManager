@@ -18,6 +18,7 @@ module BTM
 		def initialize(gnuplot, tmpdir)
 			@gnuplot = gnuplot
 			@tmpdir = tmpdir
+			@font = nil
 		end
 
 		def plot(route, outfile)
@@ -114,7 +115,12 @@ module BTM
 				pipe << "set yrange [#{min_ele}:#{max_ele}]\n"
 				pipe << "set xlabel 'distance, km'\n"
 				pipe << "set ylabel 'elevation, m'\n"
-				pipe << "set terminal png size #{image_x},#{image_y} font '#{ENV["FONT"]}'\n"
+				pipe << "set terminal png size #{image_x},#{image_y}\n"
+
+				if @font
+					pipe << "set terminal png font '#{@font}'\n"
+				end
+
 				pipe << "set output '#{outfile}';\n"
 				pipe << "plot '#{graph_data}' u 1:2 w lines lw 3,"
 				pipe << "     '#{gradient_data}' u 1:2 w lines lw 3,"
@@ -133,7 +139,7 @@ module BTM
 			tmp_files.each {|f| File.delete(f) }
 		end
 
-		attr_accessor :elevation_max, :elevation_min
+		attr_accessor :elevation_max, :elevation_min, :font
 
 		private
 
