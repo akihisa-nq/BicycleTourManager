@@ -1,10 +1,10 @@
 # coding: utf-8
 
 require "uri"
-require "http_helper"
 require "pstore"
 
-require "route"
+require "bicycle_tour_manager/route"
+require "bicycle_tour_manager/http_helper"
 
 module BTM
 	class GoogleMapUriParser

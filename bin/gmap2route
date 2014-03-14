@@ -3,72 +3,13 @@
 
 $: << File.join(File.dirname(__FILE__), "../lib")
 
-require "googlemap_uri_parser"
-require "altitude_plotter"
+require "bicycle_tour_manager"
 
 GNUPLOT = ENV["GNUPLOT"]
 CACHE_DIR = ENV["BICYCLE_TOUR_MANAGER_CACHE"] || File.dirname(__FILE__)
 
 PLOT_ELEVATION_MIN = -100
 PLOT_ELEVATION_MAX = 1100
-
-def dump_gpx(plan, output_file)
-	File.open(output_file, "w:utf-8") do |file|
-		file << <<EOF
-<?xml version="1.0" encoding="UTF-8"?>
-<gpx version="1.1" xmlns="http://www.topografix.com/GPX/1/1">
-EOF
-
-		plan.each do |pc|
-			pc.path_list.each.with_index do |route, i|
-				file << <<EOF
-	<wpt lat="#{route.steps[0][:lat]}" lon="#{route.steps[0][:lon]}">
-		<ele>#{route.steps[0][:ele]}</ele>
-		<name>PC#{pc.index} - ★#{i + 1}</name>
-	</wpt>
-EOF
-			end
-		end
-
-		file << <<EOF
-	<wpt lat="#{plan[-1].path_list[-1].steps[-1][:lat]}" lon="#{plan[-1].path_list[-1].steps[-1][:lon]}">
-		<ele>#{plan[-1].path_list[-1].steps[-1][:ele]}</ele>
-		<name>PC#{plan[-1].index} - ★#{plan[-1].path_list.size + 1}</name>
-	</wpt>
-EOF
-
-		file << <<EOF
-	<trk>
-EOF
-
-		plan.each do |pc|
-			file << <<EOF
-		<trkseg>
-EOF
-
-			pc.path_list.each do |route|
-				route.steps.each do |s|
-					file << <<EOF
-			<trkpt lat="#{s[:lat]}" lon="#{s[:lon]}">
-				<ele>#{s[:ele]}</ele>
-				<time>9999-12-31T00:00:00Z</time>
-			</trkpt>
-EOF
-				end
-			end
-
-			file << <<EOF
-		</trkseg>
-EOF
-
-		end
-
-		file << <<EOF
-	</trk>
-</gpx>
-EOF
-	end
-end
 
 def dump_route(plan, output_file)
 	count = 1
@@ -141,5 +82,6 @@ plan.each do |route|
 	plotter.plot(route, "#{INPUT_DIR}/PC#{route.index}.png")
 end
  
-dump_gpx(plan, "#{INPUT_DIR}/route.gpx")
+BTM::GpxStream.write_routes("#{INPUT_DIR}/route.gpx", plan)
 dump_route(plan, "#{INPUT_DIR}/route_template.txt")
+

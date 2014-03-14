@@ -2,7 +2,7 @@
 
 require "spec_helper"
 
-require "googlemap_uri_parser"
+require "bicycle_tour_manager"
 
 include BTM
 
