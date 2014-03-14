@@ -364,7 +364,7 @@ EOF
 <h1>PC#{pc.num} #{i + 1}/#{pc.pages.length}</h1>
 EOF
 
-			pc_alt_image = File.join(INPUT_DIR, "PC#{pc.num}.png")
+			pc_alt_image = File.absolute_path(File.join(INPUT_DIR, "PC#{pc.num}.png"))
 			if File.exist?(pc_alt_image)
 				file << <<EOF
 	<div style="text-align:center">
