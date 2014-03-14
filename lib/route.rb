@@ -1,7 +1,22 @@
 # coding: utf-8
 
 module BTM
-	class Route
+	class Path
+		R = 6371.0008 # Earth volumetric radius
+
+		def self.haversin(theta)
+			Math.sin( 0.5 * theta ) ** 2
+		end
+
+		def self.calc_distance(p1, p2)
+			lat1, lon1 = [p1[:lat], p1[:lon]].map {|a| a * Math::PI / 180.0}
+			lat2, lon2 = [p2[:lat], p2[:lon]].map {|a| a * Math::PI / 180.0}
+			deltalat = lat2 - lat1
+			deltalon = lon2 - lon1
+			h = haversin(deltalat) + Math.cos(lat1) * Math.cos(lat2) * haversin(deltalon)
+			2 * R * Math.asin(Math.sqrt(h))
+		end
+
 		def initialize(start)
 			@start = start
 			@end = 0
@@ -10,7 +25,7 @@ module BTM
 			@steps = []
 		end
 
-		def fetch(route_cache, elevation_cache)
+		def fetch_elevation(route_cache, elevation_cache)
 			param = {
 				"origin" => @start.join(","),
 				"destination" => @end.join(","),
@@ -63,5 +78,43 @@ module BTM
 
 		attr_accessor :end
 		attr_reader :start, :way_points, :steps, :distance
+	end
+
+	class Route
+		def initialize
+			@path_list = []
+			@index = -1
+		end
+
+		def flatten
+			tmp = @path_list.each.with_index.map do |r, i|
+				steps = r.steps[0..-2]
+				steps[0][:waypoint] = i + 1
+				steps
+			end
+			tmp = tmp.inject(:+)
+
+			tmp << @path_list[-1].steps[-1]
+			tmp[-1][:waypoint] = @path_list.size + 1
+
+			prev = tmp[0]
+			distance = 0.0
+			tmp.each do |r|
+				distance += Path.calc_distance(prev, r)
+				r[:dis] = distance
+				prev = r
+			end
+
+			tmp
+		end
+
+		def fetch_elevation(cache_route, cache_elevation)
+			@path_list.each do |r|
+				r.fetch_elevation(cache_route, cache_elevation)
+			end
+		end
+
+		attr_reader :path_list
+		attr_accessor :index
 	end
 end

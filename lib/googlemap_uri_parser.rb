@@ -20,21 +20,23 @@ module BTM
 		private
 
 		def create_routes(obj)
-			route = Route.new(obj["geocode"][0])
-			routes = []
+			route = Route.new
+
+			path = Path.new(obj["geocode"][0])
 			current = 0
 			via_current = 0
 			(obj["geocode"].size - 1).times do |i|
 				if obj["via"].size > via_current && obj["via"][via_current] == i + 1
-					route.way_points << obj["geocode"][i + 1]
+					path.way_points << obj["geocode"][i + 1]
 					via_current += 1
 				else
-					route.end = obj["geocode"][i + 1]
-					routes << route
-					route = Route.new(obj["geocode"][i + 1])
+					path.end = obj["geocode"][i + 1]
+					route.path_list << path
+					path = Path.new(obj["geocode"][i + 1])
 				end
 			end
-			routes
+
+			route
 		end
 
 		def split_uri(uri)
