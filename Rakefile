@@ -22,7 +22,13 @@ file GEM_NAME => ["bicycle_tour_manager.gemspec", "Rakefile"] + images do
 	system("gem build bicycle_tour_manager.gemspec")
 end
 
-task :default => GEM_NAME
+task :build => GEM_NAME
+
+task :install => :build do
+	system("gem install #{GEM_NAME}")
+end
+
+task :default => :build
 
 task :clean do
 	FileUtils.rm(images << GEM_NAME, :force => true)
