@@ -15,6 +15,7 @@ module BTM
 
 		def self.read(path)
 			tour = Tour.new
+			tour.original_file_path = path
 
 			state = STATE_START
 			reader = Nokogiri::XML::Reader(File.open(path))

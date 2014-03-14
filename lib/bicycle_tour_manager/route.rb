@@ -124,6 +124,7 @@ module BTM
 			@name = ""
 			@start_date = Time.now
 			@finish_date = Time.now
+			@original_file_path = ""
 		end
 
 		def sort!
@@ -131,6 +132,6 @@ module BTM
 		end
 
 		attr_reader :routes
-		attr_accessor :name, :start_date, :finish_date
+		attr_accessor :name, :start_date, :finish_date, :original_file_path
 	end
 end
