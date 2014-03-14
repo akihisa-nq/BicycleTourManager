@@ -111,46 +111,6 @@ def get_routes(obj)
 	routes
 end
 
-def parse_poly(data)
-	poly = []
-	index = 0
-	len = data.length
-	lat = 0
-	lng = 0
-
-	while index < len
-		b = nil
-		shift = 0
-		result = 0
-
-		begin
-			b = data[index].ord - 63
-			index += 1
-			result |= (b & 0x1f) << shift
-			shift += 5;
-		end while b >= 0x20
-
-		dlat = ((result & 1) != 0 ? ~(result >> 1) : (result >> 1))
-		lat += dlat
-
-		shift = 0;
-		result = 0;
-		begin
-			b = data[index].ord - 63
-			index += 1
-			result |= (b & 0x1f) << shift
-			shift += 5;
-		end while (b >= 0x20)
-
-		dlng = ((result & 1) != 0 ? ~(result >> 1) : (result >> 1))
-		lng += dlng
-
-		poly << [lat / 1e5.to_f, lng / 1e5.to_f]
-	end
-
-	poly
-end
-
 def haversin(theta)
 	Math.sin( 0.5 * theta ) ** 2
 end
