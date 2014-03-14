@@ -31,5 +31,5 @@ end
 task :default => :build
 
 task :clean do
-	FileUtils.rm(images << GEM_NAME, :force => true)
+	FileUtils.rm([GEM_NAME], :force => true)
 end
