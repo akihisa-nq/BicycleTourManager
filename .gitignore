@@ -3,3 +3,8 @@ Gemfile.lock
 .bundle
 bundle/
 *.gem
+.rspec
+*.db
+spec/*.PNG
+spec/route.gpx
+spec/route_template.txt

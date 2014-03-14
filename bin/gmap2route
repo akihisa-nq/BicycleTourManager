@@ -1,12 +1,16 @@
 #!/usr/bin/ruby
 # coding: utf-8
 
+$: << File.join(File.dirname(__FILE__), "../lib")
+
 require "uri"
 require "yaml"
 require "net/http"
 require "net/https"
 require "pstore"
 require "open3"
+
+require "googlemap_uri_parser"
 
 GNUPLOT = ENV["GNUPLOT"]
 CACHE_DIR = ENV["BICYCLE_TOUR_MANAGER_CACHE"] || File.dirname(__FILE__)
@@ -51,7 +55,7 @@ class Route
 		cache.transaction do
 			if cache[key].nil?
 				request = "http://maps.googleapis.com/maps/api/directions/json"
-				ret = YAML.load(Http::fetch(request, param))
+				ret = YAML.load(BTM::Http::fetch(request, param))
 				route_result = ret["routes"][0]
 
 				cache[key] = route_result
@@ -74,7 +78,7 @@ class Route
 					"locations" => "enc:" + points
 				}
 
-				ret = YAML.load(Http::fetch(request, param))["results"]
+				ret = YAML.load(BTM::Http::fetch(request, param))["results"]
 				@steps = ret.map {|i| { :lat => i["location"]["lat"], :lon => i["location"]["lng"], :ele => i["elevation"] } }
 
 				cache[points] = @steps
@@ -87,91 +91,6 @@ class Route
 
 	attr_accessor :end
 	attr_reader :start, :way_points, :steps, :distance
-end
-
-module Http
-	def self.fetch_https(uri_str, limit = 10)
-		raise ArgumentError, 'HTTP redirect too deep' if limit == 0
-
-		uri = URI.parse(uri_str)
-		request = Net::HTTP::Get.new(uri_str)
-		request.add_field('User-Agent', 'My User Agent Dawg')
-
-		https = Net::HTTP.new(uri.host, uri.port)
-		https.use_ssl = true
-		https.verify_mode = OpenSSL::SSL::VERIFY_NONE
-		https.verify_depth = 5
-
-		https.start do
-			response = https.request(request)
-
-			case response
-			when Net::HTTPSuccess
-				response.body
-			else
-				response.value
-			end
-		end
-	end
-
-	def self.fetch(uri_str, param, limit = 10)
-		raise ArgumentError, 'HTTP redirect too deep' if limit == 0
-
-		uri_str += "?" + param.map {|v| URI.encode(v[0] + "=" + v[1].to_s) }.join("&")
-
-		uri = URI.parse(uri_str)
-		request = Net::HTTP::Get.new(uri_str)
-		request.add_field('User-Agent', 'My User Agent Dawg')
-
-		response = Net::HTTP.start(uri.host, uri.port) {|http| http.request(request) }
-		case response
-		when Net::HTTPSuccess
-			response.body
-		else
-			response.value
-		end
-	end
-end
-
-def parse_geocode(geocode)
-	data = nil
-
-	cache = PStore.new("#{CACHE_DIR}/cache_geocode.db")
-	cache.transaction do
-		if cache[geocode].nil?
-			res = Http::fetch_https(%Q|https://maps.google.co.jp/maps?saddr=1&daddr=2&geocode=#{geocode}%3B#{geocode}&dirflg=w|)
-			if res =~ /latlng:{lat:([\d\.]+),lng:([\d\.]+)}/
-				data = [ $1.to_f, $2.to_f ]
-			else
-				data = [ 0.0, 0.0 ]
-			end
-
-			cache[geocode] = data
-			cache.commit
-		else
-			data = cache[geocode]
-		end
-	end
-
-	data
-end
-
-def parse_route_uri(uri)
-	data = URI.parse(uri)
-	data = Hash[*data.query.split(/[&=]/)]
-
-	data["saddr"] = URI.decode(data["saddr"])
-	data["daddr"] = URI.decode(data["daddr"]).split("+to:")
-
-	if data.include?("via")
-		data["via"] = data["via"].split(",").map{|i| i.to_i } 
-	else
-		data["via"] = []
-	end
-
-	data["geocode"] = URI.decode(data["geocode"]).split(";").map {|i| parse_geocode(i) }
-
-	data
 end
 
 def get_routes(obj)
@@ -609,13 +528,15 @@ end
 INPUT_FILE = ARGV.shift
 INPUT_DIR = File.dirname(INPUT_FILE)
 
+gmap_uri_parser = BTM::GoogleMapUriParser.new("#{CACHE_DIR}/cache_geocode.db")
+
 plan = []
 File.open(INPUT_FILE, "r:utf-8") do |file|
 	file.each_line do |line|
 		line.strip!
 
 		if line =~ /^"PC(\d+)":(.*)$/
-			obj = parse_route_uri($2)
+			obj = gmap_uri_parser.parse_uri($2)
 			routes = get_routes(obj)
 			routes.each {|r| r.fetch }
 			plan << [$1.to_i, routes]

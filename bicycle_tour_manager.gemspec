@@ -10,6 +10,6 @@ Gem::Specification.new do |spec|
 	spec.files = Dir.glob("{bin,lib,data}/**/*") << "README.txt"
 	spec.executables = Dir.glob("bin/**/*").map { |f| File.basename(f) }
 	spec.require_paths = ["lib"]
-	spec.test_files = []
+	spec.test_files = Dir.glob("spec/**/*")
 	spec.has_rdoc = false
 end
