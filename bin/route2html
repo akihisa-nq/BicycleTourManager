@@ -37,7 +37,7 @@ class Node
 <div style="position:relative; float : left; width : 64px; height : 64px;">
 EOF
 	
-		image_root = "file:///" + File.dirname(__FILE__).gsub("\\", "/")
+		image_root = "file:///" + File.join(File.dirname(__FILE__), "../data").gsub("\\", "/")
 
 		@road.keys.each do |i|
 			out << <<EOF
