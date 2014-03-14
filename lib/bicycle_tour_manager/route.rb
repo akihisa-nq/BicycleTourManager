@@ -117,4 +117,20 @@ module BTM
 		attr_reader :path_list
 		attr_accessor :index
 	end
+
+	class Tour
+		def initialize
+			@routes = []
+			@name = ""
+			@start_date = Time.now
+			@finish_date = Time.now
+		end
+
+		def sort!
+			@routes.sort_by! {|i| i.index }
+		end
+
+		attr_reader :routes
+		attr_accessor :name, :start_date, :finish_date
+	end
 end

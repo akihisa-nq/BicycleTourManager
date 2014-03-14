@@ -2,7 +2,7 @@
 
 module BTM
 	class RouteGuide
-		def self.create_template(output_file, routes)
+		def self.create_template(output_file, tour)
 			count = 1
 
 			File.open(output_file, "w:utf-8") do |file|
@@ -12,7 +12,7 @@ module BTM
 
 EOF
 
-				routes.each do |pc|
+				tour.routes.each do |pc|
 					pc.path_list.each.with_index do |route, j|
 						count += 1
 

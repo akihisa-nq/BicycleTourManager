@@ -16,7 +16,7 @@ INPUT_DIR = File.dirname(INPUT_FILE)
 
 gmap_uri_parser = BTM::GoogleMapUriParser.new("#{CACHE_DIR}/cache_geocode.db")
 
-plan = []
+tour = BTM::Tour.new
 File.open(INPUT_FILE, "r:utf-8") do |file|
 	file.each_line do |line|
 		line.strip!
@@ -28,20 +28,20 @@ File.open(INPUT_FILE, "r:utf-8") do |file|
 				"#{CACHE_DIR}/cache_elevation.db"
 				)
 			route.index = $1
-			plan << route
+			tour.routes << route
 		end
 	end
 end
-plan.sort_by! {|e| e.index}
+tour.sort!
 
 plotter = BTM::AltitudePloter.new(GNUPLOT, INPUT_DIR)
 plotter.elevation_max = PLOT_ELEVATION_MAX
 plotter.elevation_min = PLOT_ELEVATION_MIN
 
-plan.each do |route|
+tour.routes.each do |route|
 	plotter.plot(route, "#{INPUT_DIR}/PC#{route.index}.png")
 end
 
-BTM::GpxStream.write_routes("#{INPUT_DIR}/route.gpx", plan)
-BTM::RouteGuide.create_template("#{INPUT_DIR}/route_template.txt", plan)
+BTM::GpxStream.write_routes("#{INPUT_DIR}/route.gpx", tour)
+BTM::RouteGuide.create_template("#{INPUT_DIR}/route_template.txt", tour)
 
