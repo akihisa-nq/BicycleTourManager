@@ -12,10 +12,16 @@ module BTM
 		STATE_METADATA_TIME = 1
 		STATE_TRK = 2
 		STATE_TRK_NAME = 3
+		STATE_TRKPT = 4
+		STATE_TRKPT_TIME = 5
+		STATE_TRKPT_ELE = 6
 
 		def self.read(path)
 			tour = Tour.new
 			tour.original_file_path = path
+
+			route = Route.new
+			route.path_list << Path.new
 
 			state = STATE_START
 			reader = Nokogiri::XML::Reader(File.open(path))
@@ -27,27 +33,53 @@ module BTM
 					else
 						state = STATE_START
 					end
+
 				when "trk"
 					if node.node_type == Nokogiri::XML::Reader::TYPE_ELEMENT
 						state = STATE_TRK
 					else
 						state = STATE_START
 					end
+
 				when "name"
 					if node.node_type == Nokogiri::XML::Reader::TYPE_ELEMENT
 						state = STATE_TRK_NAME if state == STATE_TRK
 					else
 						state = STATE_TRK if state = STATE_TRK_NAME
 					end
+
 				when "time"
 					if node.node_type == Nokogiri::XML::Reader::TYPE_ELEMENT
 						state = STATE_METADATA_TIME if state == STATE_METADATA
+						state = STATE_TRKPT_TIME if state == STATE_TRKPT
 					else
 						state = STATE_METADATA if state == STATE_METADATA_TIME
+						state = STATE_TRKPT if state == STATE_TRKPT_TIME
 					end
+
 				when "trkseg"
+					if node.node_type == Nokogiri::XML::Reader::TYPE_END_ELEMENT
+						tour.routes << route
+
+						route = Route.new
+						route.path_list << Path.new
+					end
+
 				when "trkpt"
+					if node.node_type == Nokogiri::XML::Reader::TYPE_ELEMENT
+						state = STATE_TRKPT
+						route.path_list.last.steps << Point.new(
+							node.attributes["lat"].to_f,
+							node.attributes["lon"].to_f
+							)
+					end
+
 				when "ele"
+					if node.node_type == Nokogiri::XML::Reader::TYPE_ELEMENT
+						state = STATE_TRKPT_ELE
+					else
+						state = STATE_TRKPT
+					end
 
 				when "#text"
 					case state
@@ -55,9 +87,15 @@ module BTM
 						tour.name = node.value
 					when STATE_METADATA_TIME
 						tour.start_date = Time.parse(node.value)
+					when STATE_TRKPT_TIME
+						route.path_list.last.steps.last.time = Time.parse(node.value)
+					when STATE_TRKPT_ELE
+						route.path_list.last.steps.last.ele = node.value.to_f
 					end
 				end
 			end
+
+			tour.set_start_end
 
 			tour
 		end

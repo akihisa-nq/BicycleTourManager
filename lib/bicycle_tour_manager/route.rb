@@ -8,6 +8,7 @@ module BTM
 			@lat = lat
 			@lon = lon
 			@ele = ele
+			@time = Time.now
 			@waypoint_index = -1
 			@distance_from_start = 0.0
 			@min_max = nil # nil, :mark, :mark_min, :mark_max
@@ -32,7 +33,7 @@ module BTM
 			! @min_max.nil?
 		end
 
-		attr_accessor :lat, :lon, :ele, :waypoint_index, :distance_from_start, :min_max
+		attr_accessor :lat, :lon, :ele, :time, :waypoint_index, :distance_from_start, :min_max
 	end
 
 	class Path
@@ -55,7 +56,7 @@ module BTM
 			@start = Point.new(0.0, 0.0, 0.0)
 			@end = Point.new(0.0, 0.0, 0.0)
 			@way_points = []
-			@distance
+			@distance = 0.0
 			@steps = []
 		end
 
@@ -119,6 +120,17 @@ module BTM
 				end
 		end
 
+		def set_start_end
+			@start = @steps[0]
+			@end = @steps[-1]
+
+			if @distance == 0.0
+				(@steps.count - 2).times do |i|
+					@distance += Path.calc_distance(@steps[i + 1], @steps[i])
+				end
+			end
+		end
+
 		attr_accessor :start, :end
 		attr_reader :way_points, :steps, :distance
 	end
@@ -172,6 +184,14 @@ module BTM
 
 		def sort!
 			@routes.sort_by! {|i| i.index }
+		end
+
+		def set_start_end
+			@routes.each do |r|
+				r.path_list.each do |p|
+					p.set_start_end
+				end
+			end
 		end
 
 		attr_reader :routes
