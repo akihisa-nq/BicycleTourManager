@@ -93,12 +93,14 @@ module BTM
 			@distance = route_result["legs"].map {|i| i["distance"]["value"].to_f / 1000.0 }.inject(:+)
 
 			# 高度情報はキャッシュしておく
-			fetch_elevation_internal(route_result["overview_polyline"]["points"], elevation_cache)
+			fetch_elevation_internal(0, route_result["overview_polyline"]["points"], elevation_cache)
 		end
 
 		def fetch_elevation(elevation_cache)
-			points = Polylines::Encoder.encode_points(@steps.map {|pt| [pt.lat, pt.lon]})
-			fetch_elevation_internal(points, elevation_cache)
+			(((@steps.count - 1) / 512) + 1).times do |i|
+				points = Polylines::Encoder.encode_points(@steps[i * 512, 512].map {|pt| [pt.lat, pt.lon]})
+				fetch_elevation_internal(i * 512, points, elevation_cache)
+			end
 		end
 
 		def set_start_end
@@ -117,7 +119,7 @@ module BTM
 
 		private
 
-		def fetch_elevation_internal(points, elevation_cache)
+		def fetch_elevation_internal(start_index, points, elevation_cache)
 			elevation_result = nil
 
 			cache = PStore.new(elevation_cache)
@@ -138,7 +140,7 @@ module BTM
 				end
 			end
 
-			@steps = elevation_result.map do |i|
+			@steps[start_index, elevation_result.count] = elevation_result.map do |i|
 					pt = Point.from_params(i["location"])
 					pt.ele = i["elevation"]
 					pt
