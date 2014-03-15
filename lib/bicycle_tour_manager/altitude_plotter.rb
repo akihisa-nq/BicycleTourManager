@@ -22,6 +22,7 @@ module BTM
 			@elevation_max = 1100
 			@elevation_min = -100
 			@distance_max = 120
+			@scale = 1.0
 		end
 
 		def plot(route, outfile)
@@ -105,8 +106,8 @@ module BTM
 				min_ele = @elevation_min
 				ele_range = max_ele - min_ele
 
-				image_x = (image_base_x.to_f * max_dis.to_f / base_dis.to_f).to_i
-				image_y = (image_base_y.to_f * ele_range.to_f / base_ele.to_f).to_i
+				image_x = (image_base_x.to_f * max_dis.to_f / base_dis.to_f * @scale).to_i
+				image_y = (image_base_y.to_f * ele_range.to_f / base_ele.to_f * @scale).to_i
 
 				pipe << "unset key\n"
 				pipe << "set grid xtics mxtics ytics\n"
@@ -144,7 +145,7 @@ module BTM
 			tmp_files.each {|f| File.delete(f) }
 		end
 
-		attr_accessor :elevation_max, :elevation_min, :distance_max, :font
+		attr_accessor :elevation_max, :elevation_min, :distance_max, :scale, :font
 
 		private
 
