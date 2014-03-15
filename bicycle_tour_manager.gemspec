@@ -12,5 +12,5 @@ Gem::Specification.new do |spec|
 	spec.require_paths = ["lib"]
 	spec.test_files = Dir.glob("spec/**/*")
 	spec.has_rdoc = false
-	spec.add_runtime_dependency "nokogiri"
+	spec.add_runtime_dependency "nokogiri", "polylines"
 end

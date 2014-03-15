@@ -25,7 +25,7 @@ File.open(INPUT_FILE, "r:utf-8") do |file|
 
 		if line =~ /^"PC(\d+)":(.*)$/
 			route = gmap_uri_parser.parse_uri($2)
-			route.fetch_elevation(
+			route.search_route(
 				"#{CACHE_DIR}/cache_route.db",
 				"#{CACHE_DIR}/cache_elevation.db"
 				)

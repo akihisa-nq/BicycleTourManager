@@ -1,6 +1,7 @@
 # coding: utf-8
 
 require "yaml"
+require "polylines"
 
 module BTM
 	class Point
@@ -61,7 +62,7 @@ module BTM
 		end
 
 		# この関数を呼ぶ前に start, end, waypoints を設定すること
-		def fetch_elevation(route_cache, elevation_cache)
+		def search_route(route_cache, elevation_cache)
 			param = {
 				"origin" => @start.pack,
 				"destination" => @end.pack,
@@ -92,7 +93,31 @@ module BTM
 			@distance = route_result["legs"].map {|i| i["distance"]["value"].to_f / 1000.0 }.inject(:+)
 
 			# 高度情報はキャッシュしておく
-			points = route_result["overview_polyline"]["points"]
+			fetch_elevation_internal(route_result["overview_polyline"]["points"], elevation_cache)
+		end
+
+		def fetch_elevation(elevation_cache)
+			points = Polylines::Encoder.encode_points(@steps.map {|pt| [pt.lat, pt.lon]})
+			fetch_elevation_internal(points, elevation_cache)
+		end
+
+		def set_start_end
+			@start = @steps[0]
+			@end = @steps[-1]
+
+			if @distance == 0.0
+				(@steps.count - 2).times do |i|
+					@distance += Path.calc_distance(@steps[i + 1], @steps[i])
+				end
+			end
+		end
+
+		attr_accessor :start, :end
+		attr_reader :way_points, :steps, :distance
+
+		private
+
+		def fetch_elevation_internal(points, elevation_cache)
 			elevation_result = nil
 
 			cache = PStore.new(elevation_cache)
@@ -119,20 +144,6 @@ module BTM
 					pt
 				end
 		end
-
-		def set_start_end
-			@start = @steps[0]
-			@end = @steps[-1]
-
-			if @distance == 0.0
-				(@steps.count - 2).times do |i|
-					@distance += Path.calc_distance(@steps[i + 1], @steps[i])
-				end
-			end
-		end
-
-		attr_accessor :start, :end
-		attr_reader :way_points, :steps, :distance
 	end
 
 	class Route
@@ -163,9 +174,15 @@ module BTM
 			tmp
 		end
 
-		def fetch_elevation(cache_route, cache_elevation)
+		def search_route(route_cache, cache_elevation)
 			@path_list.each do |r|
-				r.fetch_elevation(cache_route, cache_elevation)
+				r.search_route(route_cache, cache_elevation)
+			end
+		end
+
+		def fetch_elevation(cache_elevation)
+			@path_list.each do |r|
+				r.fetch_elevation(cache_elevation)
 			end
 		end
 
