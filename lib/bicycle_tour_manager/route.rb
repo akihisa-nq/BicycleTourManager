@@ -234,6 +234,10 @@ module BTM
 			}.inject(:+)
 		end
 
+		def total_distance
+			routes.map {|r| r.path_list.map {|p| p.distance }.inject(:+) }.inject(:+)
+		end
+
 		attr_reader :routes
 		attr_accessor :name, :start_date, :finish_date, :original_file_path
 	end
