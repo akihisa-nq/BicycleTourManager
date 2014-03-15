@@ -216,9 +216,22 @@ module BTM
 		end
 
 		def flatten
+			offset = 0.0
+
 			routes.map.with_index { |r, i|
 				f = r.flatten
-				f.each {|p| p.waypoint_index += 100 * i if p.waypoint_index > 0}
+
+				f.each do |p|
+					if p.waypoint_index > 0
+						p.waypoint_index += 100 * i
+					end
+
+					if i > 1
+						p.distance_from_start += offset
+					end
+				end
+				offset += f.last.distance_from_start
+
 				f
 			}.inject(:+)
 		end
