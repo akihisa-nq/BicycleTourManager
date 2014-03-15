@@ -226,9 +226,7 @@ module BTM
 						p.waypoint_index += 100 * i
 					end
 
-					if i > 1
-						p.distance_from_start += offset
-					end
+					p.distance_from_start += offset
 				end
 				offset += f.last.distance_from_start
 
