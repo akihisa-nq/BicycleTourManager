@@ -215,6 +215,12 @@ module BTM
 			end
 		end
 
+		def flatten
+			routes.map.with_index { |r, i|
+				r.flatten.map {|p| p.waypoint_index += 100 * i}
+			}.inject(:+)
+		end
+
 		attr_reader :routes
 		attr_accessor :name, :start_date, :finish_date, :original_file_path
 	end
