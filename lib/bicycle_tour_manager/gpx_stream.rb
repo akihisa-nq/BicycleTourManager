@@ -24,7 +24,7 @@ module BTM
 			route.path_list << Path.new
 
 			state = STATE_START
-			reader = Nokogiri::XML::Reader(File.open(path))
+			reader = Nokogiri::XML::Reader(File.open(path, "r:utf-8"))
 			reader.each do |node|
 				case node.name
 				when "metadata"
@@ -118,9 +118,20 @@ EOF
 					end
 				end
 
+				wpt = tour.routes[-1].path_list[-1].steps[-1]
+
 				file << <<EOF
-	<wpt lat="#{tour.routes[-1].path_list[-1].steps[-1].lat}" lon="#{tour.routes[-1].path_list[-1].steps[-1].lon}">
-		<ele>#{tour.routes[-1].path_list[-1].steps[-1].ele}</ele>
+	<wpt lat="#{wpt.lat}" lon="#{wpt.lon}">
+		<ele>#{wpt.ele}</ele>
+EOF
+
+				if wpt.time
+					file << <<EOF
+		<time>#{wpt.time.getutc.strftime("%Y-%m-%dT%H:%M:%SZ")}</time>
+EOF
+				end
+
+				file << <<EOF
 		<name>PC#{tour.routes[-1].index} - ★#{tour.routes[-1].path_list.size + 1}</name>
 	</wpt>
 EOF
@@ -139,7 +150,18 @@ EOF
 						file << <<EOF
 			<trkpt lat="#{s.lat}" lon="#{s.lon}">
 				<ele>#{s.ele}</ele>
+EOF
+				if s.time
+					file << <<EOF
+				<time>#{s.time.getutc.strftime("%Y-%m-%dT%H:%M:%SZ")}</time>
+EOF
+				else
+					file << <<EOF
 				<time>9999-12-31T00:00:00Z</time>
+EOF
+				end
+
+						file << <<EOF
 			</trkpt>
 EOF
 						end

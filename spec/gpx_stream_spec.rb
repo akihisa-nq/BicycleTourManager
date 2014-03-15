@@ -54,4 +54,12 @@ describe GpxStream do
 		expect(tour.routes[0].path_list.last.distance).to be > 0.0
 		expect(tour.routes[1].path_list.last.distance).to be > 0.0
 	end
+
+	it "can be read and write gpx file" do
+		file = File.join(File.dirname(__FILE__), "track.gpx")
+		tour = GpxStream.read(file)
+
+		file = File.join(File.dirname(__FILE__), "track_new.gpx")
+		GpxStream.write_routes(file, tour)
+	end
 end
