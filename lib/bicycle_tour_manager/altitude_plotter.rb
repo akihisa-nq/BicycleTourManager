@@ -106,7 +106,7 @@ module BTM
 				ele_range = max_ele - min_ele
 
 				image_x = (image_base_x.to_f * max_dis.to_f / base_dis.to_f).to_i
-				image_y = (image_base_y.to_f * ele_range.to_f / base_ele.to_f * image_x.to_f / image_base_x.to_f).to_i
+				image_y = (image_base_y.to_f * ele_range.to_f / base_ele.to_f).to_i
 
 				pipe << "unset key\n"
 				pipe << "set grid xtics mxtics ytics\n"
