@@ -20,4 +20,14 @@ describe Tour do
 		expect(tour.total_distance).to be > 200.0
 		expect(tour.total_distance).to be < 300.0
 	end
+
+	it "deletes by distance" do
+		tour = GpxStream.read(File.join(File.dirname(__FILE__), "track_2.gpx"))
+		expect(tour.routes[0].path_list[0].steps[0].lat).to eq 34.9762334581
+		expect(tour.routes[0].path_list[0].steps[0].lon).to eq 135.7956534997
+		tour.delete_by_distance( Point.new(34.9762334581, 135.7956534997), 10.0 )
+		expect(tour.routes[0].path_list[0].steps[0].lat).not_to eq 34.9762334581
+		expect(tour.routes[0].path_list[0].steps[0].lon).not_to eq 135.7956534997
+		expect(tour.routes[0].path_list[0].steps.count).to be > 0
+	end
 end

@@ -116,6 +116,10 @@ module BTM
 			end
 		end
 
+		def delete_by_distance(pt, dis)
+			@steps.delete_if {|p| Path.calc_distance(p, pt) < dis }
+		end
+
 		attr_accessor :start, :end
 		attr_reader :way_points, :steps, :distance
 
@@ -236,6 +240,10 @@ module BTM
 
 		def total_distance
 			routes.map {|r| r.path_list.map {|p| p.distance }.inject(:+) }.inject(:+)
+		end
+
+		def delete_by_distance(pt, dis)
+			routes.each { |r| r.path_list.each {|p| p.delete_by_distance(pt, dis) } }
 		end
 
 		attr_reader :routes
