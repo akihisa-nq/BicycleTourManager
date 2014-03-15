@@ -12,10 +12,12 @@ describe Tour do
 		expect(flat[-1].lat).to eq 34.3722180929
 		expect(flat[-1].lon).to eq 135.7883035764
 		expect(flat[-1].distance_from_start).to be > 200.0
+		expect(flat[-1].distance_from_start).to be < 300.0
 	end
 
 	it "returns total distance" do
 		tour = GpxStream.read(File.join(File.dirname(__FILE__), "track_2.gpx"))
 		expect(tour.total_distance).to be > 200.0
+		expect(tour.total_distance).to be < 300.0
 	end
 end

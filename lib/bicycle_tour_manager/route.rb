@@ -228,7 +228,7 @@ module BTM
 
 					p.distance_from_start += offset
 				end
-				offset += f.last.distance_from_start
+				offset = f.last.distance_from_start
 
 				f
 			}.inject(:+)
