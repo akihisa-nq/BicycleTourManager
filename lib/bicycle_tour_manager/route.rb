@@ -217,7 +217,9 @@ module BTM
 
 		def flatten
 			routes.map.with_index { |r, i|
-				r.flatten.map {|p| p.waypoint_index += 100 * i}
+				f = r.flatten
+				f.each {|p| p.waypoint_index += 100 * i if p.waypoint_index > 0}
+				f
 			}.inject(:+)
 		end
 
