@@ -19,6 +19,9 @@ module BTM
 			@gnuplot = gnuplot
 			@tmpdir = tmpdir
 			@font = nil
+			@elevation_max = 1100
+			@elevation_min = -100
+			@distance_max = 120
 		end
 
 		def plot(route, outfile)
@@ -92,15 +95,17 @@ module BTM
 				unused1.close
 				unused2.close
 
+				base_dis = 120
 				base_ele = 1200
 				image_base_x = 1200
 				image_base_y = 300
 
-				image_x = 1200
+				max_dis = @distance_max
 				max_ele = @elevation_max
 				min_ele = @elevation_min
 				ele_range = max_ele - min_ele
 
+				image_x = (image_base_x.to_f * max_dis.to_f / base_dis.to_f).to_i
 				image_y = (image_base_y.to_f * ele_range.to_f / base_ele.to_f * image_x.to_f / image_base_x.to_f).to_i
 
 				pipe << "unset key\n"
@@ -111,7 +116,7 @@ module BTM
 				pipe << "set mytics 2\n"
 				pipe << "show mxtics\n"
 				pipe << "show mytics\n"
-				pipe << "set xrange [0:120]\n"
+				pipe << "set xrange [0:#{max_dis}]\n"
 				pipe << "set yrange [#{min_ele}:#{max_ele}]\n"
 				pipe << "set xlabel 'distance, km'\n"
 				pipe << "set ylabel 'elevation, m'\n"
@@ -139,7 +144,7 @@ module BTM
 			tmp_files.each {|f| File.delete(f) }
 		end
 
-		attr_accessor :elevation_max, :elevation_min, :font
+		attr_accessor :elevation_max, :elevation_min, :distance_max, :font
 
 		private
 
