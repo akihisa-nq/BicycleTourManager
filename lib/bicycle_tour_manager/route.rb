@@ -96,10 +96,12 @@ module BTM
 			fetch_elevation_internal(0, route_result["overview_polyline"]["points"], elevation_cache)
 		end
 
+		LOC_PER_REQUEST = 256
+
 		def fetch_elevation(elevation_cache)
-			(((@steps.count - 1) / 512) + 1).times do |i|
-				points = Polylines::Encoder.encode_points(@steps[i * 512, 512].map {|pt| [pt.lat, pt.lon]})
-				fetch_elevation_internal(i * 512, points, elevation_cache)
+			(((@steps.count - 1) / LOC_PER_REQUEST) + 1).times do |i|
+				points = Polylines::Encoder.encode_points(@steps[i * LOC_PER_REQUEST, LOC_PER_REQUEST].map {|pt| [pt.lat, pt.lon]})
+				fetch_elevation_internal(i * LOC_PER_REQUEST, points, elevation_cache)
 			end
 		end
 
