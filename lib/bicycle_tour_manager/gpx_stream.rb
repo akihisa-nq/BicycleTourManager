@@ -53,7 +53,7 @@ module BTM
 
 				when "time"
 					if node.node_type == Nokogiri::XML::Reader::TYPE_ELEMENT
-						state = STATE_METADATA_TIME if state == STATE_METADATA
+						state = STATE_METADATA_TIME if state == STATE_METADATA || state == STATE_START
 						state = STATE_TRKPT_TIME if state == STATE_TRKPT
 						state = STATE_WPT_TIME if state == STATE_WPT
 					else
