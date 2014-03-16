@@ -30,4 +30,13 @@ describe Tour do
 		expect(tour.routes[0].path_list[0].steps[0].lon).not_to eq 135.7956534997
 		expect(tour.routes[0].path_list[0].steps.count).to be > 0
 	end
+
+	it "deletes path by distance if the number of steps is zero" do
+		tour = Tour.new
+		tour.routes << Route.new
+		tour.routes.last.path_list << Path.new
+		tour.routes.last.path_list.last.steps << Point.new(0.0, 0.0)
+		tour.delete_by_distance(Point.new(0.0, 0.0), 10.0)
+		expect(tour.routes.count).to eq 0
+	end
 end

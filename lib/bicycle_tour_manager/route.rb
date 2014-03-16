@@ -243,7 +243,13 @@ module BTM
 		end
 
 		def delete_by_distance(pt, dis)
-			routes.each { |r| r.path_list.each {|p| p.delete_by_distance(pt, dis) } }
+			routes.each do |r|
+				r.path_list.each do |p|
+					p.delete_by_distance(pt, dis)
+				end
+				r.path_list.delete_if {|p| p.steps.count == 0 }
+			end
+			routes.delete_if {|r| r.path_list.count == 0 }
 		end
 
 		attr_reader :routes
