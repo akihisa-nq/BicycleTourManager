@@ -63,5 +63,7 @@ describe GpxStream do
 		GpxStream.write_routes(file, tour)
 
 		tour2 = GpxStream.read(file)
+		expect(tour2.name).to eq "シクロ ジャンブル"
+		expect(tour2.start_date).to eq Time.parse("2013-05-20T03:40:54Z")
 	end
 end

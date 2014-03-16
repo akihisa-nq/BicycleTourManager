@@ -125,6 +125,17 @@ module BTM
 			file << <<EOF
 <?xml version="1.0" encoding="UTF-8"?>
 <gpx version="1.1" xmlns="http://www.topografix.com/GPX/1/1">
+	<metadata>
+EOF
+
+			if tour.start_date
+			file << <<EOF
+		<time>#{tour.start_date.getutc.strftime("%Y-%m-%dT%H:%M:%SZ")}</time>
+EOF
+			end
+
+			file << <<EOF
+	</metadata>
 EOF
 
 				tour.routes.each do |pc|
@@ -158,6 +169,7 @@ EOF
 
 				file << <<EOF
 	<trk>
+		<name>#{tour.name}</name>
 EOF
 
 				tour.routes.each do |pc|
