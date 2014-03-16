@@ -61,5 +61,7 @@ describe GpxStream do
 
 		file = File.join(File.dirname(__FILE__), "track_new.gpx")
 		GpxStream.write_routes(file, tour)
+
+		tour2 = GpxStream.read(file)
 	end
 end

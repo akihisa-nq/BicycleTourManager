@@ -15,6 +15,9 @@ module BTM
 		STATE_TRKPT = 4
 		STATE_TRKPT_TIME = 5
 		STATE_TRKPT_ELE = 6
+		STATE_WPT = 7
+		STATE_WPT_TIME = 8
+		STATE_WPT_ELE = 9
 
 		def self.read(path)
 			tour = Tour.new
@@ -52,9 +55,11 @@ module BTM
 					if node.node_type == Nokogiri::XML::Reader::TYPE_ELEMENT
 						state = STATE_METADATA_TIME if state == STATE_METADATA
 						state = STATE_TRKPT_TIME if state == STATE_TRKPT
+						state = STATE_WPT_TIME if state == STATE_WPT
 					else
 						state = STATE_METADATA if state == STATE_METADATA_TIME
 						state = STATE_TRKPT if state == STATE_TRKPT_TIME
+						state = STATE_WPT if state == STATE_WPT_TIME
 					end
 
 				when "trkseg"
@@ -74,11 +79,22 @@ module BTM
 							)
 					end
 
+				when "wpt"
+					if node.node_type == Nokogiri::XML::Reader::TYPE_ELEMENT
+						state = STATE_WPT
+						route.path_list.last.way_points << Point.new(
+							node.attributes["lat"].to_f,
+							node.attributes["lon"].to_f
+							)
+					end
+
 				when "ele"
 					if node.node_type == Nokogiri::XML::Reader::TYPE_ELEMENT
-						state = STATE_TRKPT_ELE
+						state = STATE_TRKPT_ELE if state == STATE_TRKPT
+						state = STATE_WPT_ELE if state == STATE_WPT
 					else
-						state = STATE_TRKPT
+						state = STATE_TRKPT if state == STATE_TRKPT_ELE
+						state = STATE_WPT if state == STATE_WPT_ELE
 					end
 
 				when "#text"
@@ -91,6 +107,10 @@ module BTM
 						route.path_list.last.steps.last.time = Time.parse(node.value)
 					when STATE_TRKPT_ELE
 						route.path_list.last.steps.last.ele = node.value.to_f
+					when STATE_WPT_TIME
+						route.path_list.last.way_points.last.time = Time.parse(node.value)
+					when STATE_WPT_ELE
+						route.path_list.last.way_points.last.ele = node.value.to_f
 					end
 				end
 			end

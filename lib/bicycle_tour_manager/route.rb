@@ -61,7 +61,7 @@ module BTM
 			@steps = []
 		end
 
-		# この関数を呼ぶ前に start, end, waypoints を設定すること
+		# この関数を呼ぶ前に start, end, way_points を設定すること
 		def search_route(route_cache, elevation_cache)
 			param = {
 				"origin" => @start.pack,
