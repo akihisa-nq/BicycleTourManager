@@ -2,8 +2,14 @@ require "bicycle_tour_manager"
 
 include BTM
 
+require "rgeo"
+
 describe Path do
 	ele_cache = "test_cache_elevation.db"
+
+	it "uses geos library" do
+		expect(RGeo::Geos.supported?).to eq true
+	end
 
 	it "can be fetch elevation" do
 		path = Path.new
