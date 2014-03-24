@@ -165,7 +165,7 @@ module BTM
 
 				# 以前の点
 				j = i - 1
-				while j >= 0 && (check_min || check_max) && Path.calc_distance(tmp[i], tmp[j]) < PEAK_SEARCH_DISTANCE
+				while j >= 0 && (check_min || check_max) && tmp[i].distance(tmp[j]) < PEAK_SEARCH_DISTANCE
 					check_min = false if tmp[j].ele <= tmp[i].ele
 					check_max = false if tmp[j].ele >= tmp[i].ele
 					j -= 1
@@ -174,7 +174,7 @@ module BTM
 
 				# 以後の点
 				j = i + 1
-				while j < tmp.length && (check_min || check_max) && Path.calc_distance(tmp[i], tmp[j]) < PEAK_SEARCH_DISTANCE
+				while j < tmp.length && (check_min || check_max) && tmp[i].distance(tmp[j]) < PEAK_SEARCH_DISTANCE
 					check_min = false if tmp[j].ele <= tmp[i].ele
 					check_max = false if tmp[j].ele >= tmp[i].ele
 					j += 1

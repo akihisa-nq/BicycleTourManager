@@ -2,12 +2,19 @@
 
 require "yaml"
 require "polylines"
+require "rgeo"
 
 module BTM
+	def BTM.factory
+		@@factory ||= RGeo::Geos.factory(
+			:srs_database => RGeo::CoordSys::SRSDatabase::SrOrg.new('epsg'),
+			:srid => 4326
+			)
+	end
+
 	class Point
 		def initialize(lat, lon, ele=0.0)
-			@lat = lat
-			@lon = lon
+			@point_geos = BTM.factory.point(lon, lat)
 			@ele = ele
 			@time = Time.now
 			@waypoint_index = -1
@@ -23,7 +30,7 @@ module BTM
 		end
 
 		def pack
-			"#{@lat},#{@lon}"
+			"#{lat},#{lon}"
 		end
 
 		def waypoint?
@@ -34,25 +41,48 @@ module BTM
 			! @min_max.nil?
 		end
 
-		attr_accessor :lat, :lon, :ele, :time, :waypoint_index, :distance_from_start, :min_max
-	end
-
-	class Path
-		R = 6371.0008 # Earth volumetric radius
-
-		def self.haversin(theta)
-			Math.sin( 0.5 * theta ) ** 2
+		def lat
+			@point_geos.y
 		end
+
+		def lat=(val)
+			@point_geos.y = val
+		end
+
+		def lon
+			@point_geos.x
+		end
+
+		def lon=(val)
+			@point_geos.x = val
+		end
+
+		def distance(pt)
+			Point.calc_distance(self, pt)
+		end
+
+		attr_accessor :point_geos, :ele, :time, :waypoint_index, :distance_from_start, :min_max
+
+		private
+
+		R1 = 6378.137000
+		R2 = 6356.752314245
+		E_2 = (R1 ** 2 - R2 ** 2) / (R1 ** 2)
 
 		def self.calc_distance(p1, p2)
 			lat1, lon1 = [p1.lat, p1.lon].map {|a| a * Math::PI / 180.0}
 			lat2, lon2 = [p2.lat, p2.lon].map {|a| a * Math::PI / 180.0}
-			deltalat = lat2 - lat1
-			deltalon = lon2 - lon1
-			h = haversin(deltalat) + Math.cos(lat1) * Math.cos(lat2) * haversin(deltalon)
-			2 * R * Math.asin(Math.sqrt(h))
+			dy = lat2 - lat1
+			dx = lon2 - lon1
+			uy = (lat2 + lat1) / 2.0
+			rot_w = Math.sqrt(1.0  - E_2 * (Math.sin(uy) ** 2))
+			m = R1 * (1 - E_2) * (rot_w ** 3)
+			n = R1 * rot_w
+			Math.sqrt( (dy * m) ** 2 + (dx * n * Math.cos(uy)) ** 2 )
 		end
+	end
 
+	class Path
 		def initialize
 			@start = Point.new(0.0, 0.0, 0.0)
 			@end = Point.new(0.0, 0.0, 0.0)
@@ -111,13 +141,13 @@ module BTM
 
 			if @distance == 0.0
 				(@steps.count - 2).times do |i|
-					@distance += Path.calc_distance(@steps[i + 1], @steps[i])
+					@distance += @steps[i + 1].distance(@steps[i])
 				end
 			end
 		end
 
 		def delete_by_distance(pt, dis)
-			@steps.delete_if {|p| Path.calc_distance(p, pt) < dis }
+			@steps.delete_if {|p| p.distance(pt) < dis }
 		end
 
 		attr_accessor :start, :end
@@ -174,7 +204,7 @@ module BTM
 			prev = tmp[0]
 			distance = 0.0
 			tmp.each do |r|
-				distance += Path.calc_distance(prev, r)
+				distance += prev.distance(r)
 				r.distance_from_start = distance
 				prev = r
 			end
