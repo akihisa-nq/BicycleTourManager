@@ -131,6 +131,11 @@ module BTM
 
 		def self.write_routes(output_file, tour)
 			File.open(output_file, "w:utf-8") do |file|
+				write_routes_to_stream(file, tour)
+			end
+		end
+
+		def self.write_routes_to_stream(file, tour)
 			file << <<EOF
 <?xml version="1.0" encoding="UTF-8"?>
 <gpx version="1.1" xmlns="http://www.topografix.com/GPX/1/1">
@@ -138,7 +143,7 @@ module BTM
 EOF
 
 			if tour.start_date
-			file << <<EOF
+				file << <<EOF
 		<time>#{tour.start_date.getutc.strftime("%Y-%m-%dT%H:%M:%SZ")}</time>
 EOF
 			end
@@ -147,42 +152,42 @@ EOF
 	</metadata>
 EOF
 
-				tour.routes.each do |pc|
-					pc.path_list.each.with_index do |route, i|
-						file << <<EOF
+			tour.routes.each do |pc|
+				pc.path_list.each.with_index do |route, i|
+					file << <<EOF
 	<wpt lat="#{route.steps[0].lat}" lon="#{route.steps[0].lon}">
 		<ele>#{route.steps[0].ele}</ele>
 		<name>PC#{pc.index} - ★#{i + 1}</name>
 	</wpt>
 EOF
-					end
 				end
+			end
 
-				wpt = tour.routes[-1].path_list[-1].steps[-1]
+			wpt = tour.routes[-1].path_list[-1].steps[-1]
 
-				file << <<EOF
+			file << <<EOF
 	<wpt lat="#{wpt.lat}" lon="#{wpt.lon}">
 		<ele>#{wpt.ele}</ele>
 EOF
 
-				if wpt.time
-					file << <<EOF
+			if wpt.time
+				file << <<EOF
 		<time>#{wpt.time.getutc.strftime("%Y-%m-%dT%H:%M:%SZ")}</time>
 EOF
-				end
+			end
 
-				file << <<EOF
+			file << <<EOF
 		<name>PC#{tour.routes[-1].index} - ★#{tour.routes[-1].path_list.size + 1}</name>
 	</wpt>
 EOF
 
-				file << <<EOF
+			file << <<EOF
 	<trk>
 		<name>#{tour.name}</name>
 EOF
 
-				tour.routes.each do |pc|
-					file << <<EOF
+			tour.routes.each do |pc|
+				file << <<EOF
 		<trkseg>
 EOF
 
@@ -192,32 +197,31 @@ EOF
 			<trkpt lat="#{s.lat}" lon="#{s.lon}">
 				<ele>#{s.ele}</ele>
 EOF
-				if s.time
-					file << <<EOF
+						if s.time
+							file << <<EOF
 				<time>#{s.time.getutc.strftime("%Y-%m-%dT%H:%M:%SZ")}</time>
 EOF
-				else
-					file << <<EOF
+						else
+							file << <<EOF
 				<time>9999-12-31T00:00:00Z</time>
 EOF
-				end
+						end
 
 						file << <<EOF
 			</trkpt>
 EOF
-						end
 					end
-
-					file << <<EOF
-		</trkseg>
-EOF
 				end
 
-				file << <<EOF
+			file << <<EOF
+		</trkseg>
+EOF
+			end
+
+			file << <<EOF
 	</trk>
 </gpx>
 EOF
-			end
 		end
 	end
 end
