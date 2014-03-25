@@ -14,4 +14,5 @@ Gem::Specification.new do |spec|
 	spec.has_rdoc = false
 	spec.add_runtime_dependency "nokogiri"
 	spec.add_runtime_dependency "polylines"
+	spec.add_runtime_dependency "rgeo"
 end
