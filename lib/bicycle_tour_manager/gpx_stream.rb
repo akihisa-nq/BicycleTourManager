@@ -20,14 +20,23 @@ module BTM
 		STATE_WPT_ELE = 9
 
 		def self.read(path)
-			tour = Tour.new
+			tour = read_from_stream(File.open(path, "r:utf-8"))
 			tour.original_file_path = path
+			tour
+		end
+
+		def self.read_from_stream(stream)
+			tour = Tour.new
+
+			if stream.respond_to?(:original_filename)
+				tour.original_file_path = stream.original_filename
+			end
 
 			route = Route.new
 			route.path_list << Path.new
 
 			state = STATE_START
-			reader = Nokogiri::XML::Reader(File.open(path, "r:utf-8"))
+			reader = Nokogiri::XML::Reader(stream)
 			reader.each do |node|
 				case node.name
 				when "metadata"
