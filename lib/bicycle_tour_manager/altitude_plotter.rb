@@ -35,7 +35,7 @@ module BTM
 			tmp = route.flatten
 
 			# ピークをマーク
-			tmp = check_peak(tmp)
+			Path.check_peak(tmp)
 
 			# 傾斜を計算
 			grads = check_gradient(tmp)
@@ -148,67 +148,6 @@ module BTM
 		attr_accessor :elevation_max, :elevation_min, :distance_max, :scale, :font
 
 		private
-
-		def check_peak(tmp)
-			# 極小/極大をマークする
-			tmp[0].min_max = :mark
-			tmp[-1].min_max = :mark
-
-			prev = 0
-			prev_min = 0
-			(1..tmp.length-2).each do |i|
-				check_min = true
-				check_max = true
-
-				# 最小値チェック
-				prev_min = i if tmp[prev_min].ele > tmp[i].ele
-
-				# 以前の点
-				j = i - 1
-				while j >= 0 && (check_min || check_max) && tmp[i].distance(tmp[j]) < PEAK_SEARCH_DISTANCE
-					check_min = false if tmp[j].ele <= tmp[i].ele
-					check_max = false if tmp[j].ele >= tmp[i].ele
-					j -= 1
-				end
-				next unless check_min || check_max
-
-				# 以後の点
-				j = i + 1
-				while j < tmp.length && (check_min || check_max) && tmp[i].distance(tmp[j]) < PEAK_SEARCH_DISTANCE
-					check_min = false if tmp[j].ele <= tmp[i].ele
-					check_max = false if tmp[j].ele >= tmp[i].ele
-					j += 1
-				end
-				next unless check_min || check_max
-
-				# マークする
-				if check_min
-					if tmp[prev].min_max == :mark_min
-						if tmp[prev].ele < tmp[i].ele
-							# マーク不要
-						else
-							tmp[prev].min_max = nil
-							tmp[i].min_max = :mark_min
-							prev = i
-						end
-					else
-						tmp[i].min_max = :mark_min
-						prev = i
-					end
-				else
-					if prev_min > 0 && tmp[prev].min_max == :mark_max
-						tmp[prev_min].min_max = :mark_min
-					end
-
-					tmp[i].min_max = :mark_max
-					prev = i
-				end
-
-				prev_min = i
-			end
-
-			tmp
-		end
 
 		def check_gradient(tmp)
 			result = []

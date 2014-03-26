@@ -83,6 +83,67 @@ module BTM
 	end
 
 	class Path
+		def self.check_peak(tmp)
+			# 極小/極大をマークする
+			tmp[0].min_max = :mark
+			tmp[-1].min_max = :mark
+
+			prev = 0
+			prev_min = 0
+			(1..tmp.length-2).each do |i|
+				check_min = true
+				check_max = true
+
+				# 最小値チェック
+				prev_min = i if tmp[prev_min].ele > tmp[i].ele
+
+				# 以前の点
+				j = i - 1
+				while j >= 0 && (check_min || check_max) && tmp[i].distance(tmp[j]) < PEAK_SEARCH_DISTANCE
+					check_min = false if tmp[j].ele <= tmp[i].ele
+					check_max = false if tmp[j].ele >= tmp[i].ele
+					j -= 1
+				end
+				next unless check_min || check_max
+
+				# 以後の点
+				j = i + 1
+				while j < tmp.length && (check_min || check_max) && tmp[i].distance(tmp[j]) < PEAK_SEARCH_DISTANCE
+					check_min = false if tmp[j].ele <= tmp[i].ele
+					check_max = false if tmp[j].ele >= tmp[i].ele
+					j += 1
+				end
+				next unless check_min || check_max
+
+				# マークする
+				if check_min
+					if tmp[prev].min_max == :mark_min
+						if tmp[prev].ele < tmp[i].ele
+							# マーク不要
+						else
+							tmp[prev].min_max = nil
+							tmp[i].min_max = :mark_min
+							prev = i
+						end
+					else
+						tmp[i].min_max = :mark_min
+						prev = i
+					end
+				else
+					if prev_min > 0 && tmp[prev].min_max == :mark_max
+						tmp[prev_min].min_max = :mark_min
+					end
+
+					tmp[i].min_max = :mark_max
+					prev = i
+				end
+
+				prev_min = i
+			end
+
+			tmp
+		end
+
 		def initialize
 			@start = Point.new(0.0, 0.0, 0.0)
 			@end = Point.new(0.0, 0.0, 0.0)
@@ -126,8 +187,6 @@ module BTM
 			fetch_elevation_internal(0, route_result["overview_polyline"]["points"], elevation_cache)
 		end
 
-		LOC_PER_REQUEST = 256
-
 		def fetch_elevation(elevation_cache)
 			(((@steps.count - 1) / LOC_PER_REQUEST) + 1).times do |i|
 				points = Polylines::Encoder.encode_points(@steps[i * LOC_PER_REQUEST, LOC_PER_REQUEST].map {|pt| [pt.lat, pt.lon]})
@@ -150,10 +209,18 @@ module BTM
 			@steps.delete_if {|p| p.distance(pt) < dis }
 		end
 
+		def check_peak
+			Path.check_peak(@steps)
+		end
+
 		attr_accessor :start, :end
 		attr_reader :way_points, :steps, :distance
 
 		private
+
+		LOC_PER_REQUEST = 256
+
+		PEAK_SEARCH_DISTANCE = 2.5
 
 		def fetch_elevation_internal(start_index, points, elevation_cache)
 			elevation_result = nil
