@@ -4,7 +4,6 @@ require "open3"
 
 module BTM
 	class AltitudePloter
-		PEAK_SEARCH_DISTANCE = 2.5
 		PEAK_LIMIT_DISTANCE = 0.5
 		PEAK_LIMIT_GRADIENT = 3.0
 		PEAK_LIMIT_DISTANCE_LONG = 5.0

@@ -34,4 +34,14 @@ describe Path do
 		expect(path.steps[3].min_max).to eq :mark_max
 		expect(path.steps[4].min_max).to eq :mark
 	end
+
+	it "check peak with big data" do
+		path = File.join(File.dirname(__FILE__), "track_3.gpx")
+		tour = GpxStream.read(path)
+		tour.routes.each do |r|
+			r.path_list.each do |p|
+				p.check_peak
+			end
+		end
+	end
 end

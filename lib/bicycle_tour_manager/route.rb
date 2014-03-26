@@ -61,6 +61,10 @@ module BTM
 			Point.calc_distance(self, pt)
 		end
 
+		def distance_on_path(pt)
+			(self.distance_from_start - pt.distance_from_start).abs
+		end
+
 		attr_accessor :point_geos, :ele, :time, :waypoint_index, :distance_from_start, :min_max
 
 		private
@@ -99,7 +103,7 @@ module BTM
 
 				# 以前の点
 				j = i - 1
-				while j >= 0 && (check_min || check_max) && tmp[i].distance(tmp[j]) < PEAK_SEARCH_DISTANCE
+				while j >= 0 && (check_min || check_max) && tmp[i].distance_on_path(tmp[j]) < PEAK_SEARCH_DISTANCE
 					check_min = false if tmp[j].ele <= tmp[i].ele
 					check_max = false if tmp[j].ele >= tmp[i].ele
 					j -= 1
@@ -108,7 +112,7 @@ module BTM
 
 				# 以後の点
 				j = i + 1
-				while j < tmp.length && (check_min || check_max) && tmp[i].distance(tmp[j]) < PEAK_SEARCH_DISTANCE
+				while j < tmp.length && (check_min || check_max) && tmp[i].distance_on_path(tmp[j]) < PEAK_SEARCH_DISTANCE
 					check_min = false if tmp[j].ele <= tmp[i].ele
 					check_max = false if tmp[j].ele >= tmp[i].ele
 					j += 1
@@ -150,6 +154,8 @@ module BTM
 			@way_points = []
 			@distance = 0.0
 			@steps = []
+			@mark_peak
+			@mark_distance_from_start
 		end
 
 		# この関数を呼ぶ前に start, end, way_points を設定すること
@@ -210,7 +216,39 @@ module BTM
 		end
 
 		def check_peak
-			Path.check_peak(@steps)
+			check_distance_from_start
+
+			unless mark_peak?
+				Path.check_peak(@steps)
+			end
+		end
+
+		def mark_peak?
+			@mark_peak
+		end
+
+		def check_distance_from_start
+			unless mark_distance_from_start?
+				prev = @steps.first
+				dis = 0.0
+				@steps.each do |s|
+					dis += prev.distance(s)
+					s.distance_from_start = dis
+					prev = s
+				end
+			end
+		end
+
+		def mark_peak=(flag)
+			@mark_peak = flag
+		end
+
+		def mark_distance_from_start?
+			@mark_distance_from_start
+		end
+
+		def mark_distance_from_start=(flag)
+			@mark_distance_from_start = flag
 		end
 
 		attr_accessor :start, :end
@@ -270,10 +308,10 @@ module BTM
 
 			prev = tmp[0]
 			distance = 0.0
-			tmp.each do |r|
-				distance += prev.distance(r)
-				r.distance_from_start = distance
-				prev = r
+			tmp.each do |s|
+				distance += prev.distance(s)
+				s.distance_from_start = distance
+				prev = s
 			end
 
 			tmp
