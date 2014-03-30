@@ -21,6 +21,11 @@ describe Tour do
 		expect(tour.total_distance).to be < 300.0
 	end
 
+	it "returns zero for no routes" do
+		tour = Tour.new
+		expect(tour.total_distance).to eq(0.0)
+	end
+
 	it "deletes by distance" do
 		tour = GpxStream.read(File.join(File.dirname(__FILE__), "track_2.gpx"))
 		expect(tour.routes[0].path_list[0].steps[0].lat).to eq 34.9762334581

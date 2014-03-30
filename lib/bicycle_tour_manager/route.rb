@@ -374,7 +374,11 @@ module BTM
 		end
 
 		def total_distance
-			routes.map {|r| r.path_list.map {|p| p.distance }.inject(:+) }.inject(:+)
+			if routes.length == 0
+				0.0
+			else
+				routes.map {|r| r.path_list.map {|p| p.distance }.inject(:+) }.inject(:+)
+			end
 		end
 
 		def delete_by_distance(pt, dis)
