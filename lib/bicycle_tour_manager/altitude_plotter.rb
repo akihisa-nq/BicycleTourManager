@@ -182,11 +182,11 @@ module BTM
 					end
 				end
 
-				break {
+				break [{
 					:start => tmp[i],
 					:end => tmp[j],
 					:grad => (a / 10.0).to_i
-				}
+				}]
 			end
 
 			prev = 0
@@ -207,7 +207,7 @@ module BTM
 							end
 						end
 
-						result << ret
+						result += ret
 					else
 						prev = i
 					end
