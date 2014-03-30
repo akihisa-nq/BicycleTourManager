@@ -152,7 +152,10 @@ module BTM
 			result = []
 
 			calc = lambda do |i, j|
-				a = (tmp[j].ele - tmp[i].ele) / (tmp[j].distance_from_start - tmp[i].distance_from_start)
+				diff_dis = tmp[j].distance_from_start - tmp[i].distance_from_start
+				break nil if diff_dis == 0.0
+
+				a = (tmp[j].ele - tmp[i].ele) / diff_dis
 				b = tmp[i].ele - a * tmp[i].distance_from_start
 
 				if tmp[j].distance_from_start - tmp[i].distance_from_start > 1.0
@@ -186,6 +189,7 @@ module BTM
 				unless e.min_max.nil?
 					if e.min_max == :mark_max
 						ret = calc.call(prev, i)
+						next if ret.nil?
 
 						current = 0
 						while current + 1 < ret.size
