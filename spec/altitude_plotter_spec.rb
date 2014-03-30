@@ -37,7 +37,7 @@ describe AltitudePloter do
 	end
 
 	it "plots a gpx" do
-		gpx = File.join(File.dirname(__FILE__), "route.gpx")
+		gpx = File.join(File.dirname(__FILE__), "track.gpx")
 		tour = GpxStream.read(gpx)
 
 		plotter = BTM::AltitudePloter.new(ENV["GNUPLOT"], File.dirname(__FILE__))
