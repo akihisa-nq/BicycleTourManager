@@ -88,6 +88,8 @@ module BTM
 
 	class Path
 		def self.check_peak(tmp)
+			return if tmp.length == 0
+
 			# 極小/極大をマークする
 			tmp[0].min_max = :mark
 			tmp[-1].min_max = :mark
@@ -296,7 +298,7 @@ module BTM
 		end
 
 		def flatten
-			tmp = @path_list.each.with_index.map do |r, i|
+			tmp = @path_list.map.with_index do |r, i|
 				steps = r.steps[0..-2]
 				steps[0].waypoint_index = i + 1
 				steps
@@ -355,6 +357,8 @@ module BTM
 		end
 
 		def flatten
+			return [] if routes.length == 0
+
 			offset = 0.0
 
 			routes.map.with_index { |r, i|
