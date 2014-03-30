@@ -53,6 +53,7 @@ module BTM
 						if prev_waypoint.nil? \
 						  || pt.distance_from_start - prev_waypoint.distance_from_start >= 2.5 \
 						  || (pt.ele - prev_waypoint.ele).abs >= 100.0
+						then
 							waypoint << "#{pt.distance_from_start} #{pt.ele} ★#{pt.waypoint_index}\\n\n"
 							prev_waypoint = pt
 						end
@@ -64,7 +65,9 @@ module BTM
 							diff_ele = pt.ele - prev_peak.ele
 							grad_val = diff_ele / diff_dis / 10.0
 
-							if diff_dis >= PEAK_LIMIT_DISTANCE && grad_val >= PEAK_LIMIT_GRADIENT || (grad_val >= PEAK_LIMIT_GRADIENT_LONG && diff_dis >= PEAK_LIMIT_DISTANCE_LONG)
+							if diff_dis >= PEAK_LIMIT_DISTANCE && grad_val >= PEAK_LIMIT_GRADIENT \
+								|| (grad_val >= PEAK_LIMIT_GRADIENT_LONG && diff_dis >= PEAK_LIMIT_DISTANCE_LONG)
+							then
 								peak << "#{pt.distance_from_start} #{pt.ele} #{pt.ele.to_i}\n"
 							end
 						end
@@ -79,7 +82,9 @@ module BTM
 				grads.each do |e|
 					diff_dis = e[:end].distance_from_start - e[:start].distance_from_start
 
-					if e[:grad] >= GRAD_LIMIT_GRADIENT || (e[:grad] >= GRAD_LIMIT_GRADIENT_LONG && diff_dis >= GRAD_LIMIT_DISTANCE_LONG)
+					if e[:grad] >= GRAD_LIMIT_GRADIENT \
+						|| (e[:grad] >= GRAD_LIMIT_GRADIENT_LONG && diff_dis >= GRAD_LIMIT_DISTANCE_LONG)
+					then
 						grad << "#{e[:start].distance_from_start} #{e[:start].ele} -50 #{e[:start].distance_from_start.round}\\n+#{diff_dis.round}\n"
 						grad << "#{e[:end].distance_from_start} #{e[:end].ele}\n"
 						grad << "\n"
