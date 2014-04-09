@@ -11,10 +11,10 @@ module BTM
 			@start = ""
 			@dest = ""
 			@via = []
-			@geocode = Point.new(0.0, 0.0, 0.0)
+			@points = []
 		end
 
-		attr_accessor :start, :dest, :via, :geocode
+		attr_accessor :start, :dest, :via, :points
 	end
 
 	class GoogleMapUriParser
@@ -23,8 +23,13 @@ module BTM
 		end
 
 		def parse_uri(uri)
-			obj = split_uri(uri)
-			create_routes(obj)
+			parsed = nil
+			if uri.include?("/dir/")
+				parsed = parse_uri_new(uri)
+			else
+				parsed = parse_uri_old(uri)
+			end
+			create_routes(parsed)
 		end
 
 		private
@@ -33,27 +38,27 @@ module BTM
 			route = Route.new
 
 			path = Path.new
-			path.start = obj.geocode[0]
+			path.start = obj.points[0]
 
 			current = 0
 			via_current = 0
-			(obj.geocode.size - 1).times do |i|
+			(obj.points.size - 1).times do |i|
 				if obj.via.size > via_current && obj.via[via_current] == i + 1
-					path.way_points << obj.geocode[i + 1]
+					path.way_points << obj.points[i + 1]
 					via_current += 1
 				else
-					path.end = obj.geocode[i + 1]
+					path.end = obj.points[i + 1]
 					route.path_list << path
 
 					path = Path.new
-					path.start = obj.geocode[i + 1]
+					path.start = obj.points[i + 1]
 				end
 			end
 
 			route
 		end
 
-		def split_uri(uri)
+		def parse_uri_old(uri)
 			parsed_uri = URI.parse(uri)
 			data = Hash[*parsed_uri.query.split(/[&=]/)]
 			uri = GoogleMapUri.new
@@ -67,9 +72,40 @@ module BTM
 				uri.via = []
 			end
 
-			uri.geocode = URI.decode(data["geocode"]).split(";").map {|i| parse_geocode(i) }
+			uri.points = URI.decode(data["geocode"]).split(";").map {|i| parse_geocode(i) }
 
 			uri
+		end
+
+		def parse_uri_new(uri)
+			obj = GoogleMapUri.new
+
+			if /\/dir\/(.*)\/@/ =~ uri
+				obj.points = $1.split("/").map do |i|
+					p = i.split(",")
+					Point.new(p[0].to_f, p[1].to_f)
+				end
+			end
+
+			if /data=(.*)\?/ =~ uri
+				data = $1
+
+				lon = 0.0
+				data.split("!").each do |r|
+					case r
+					when /^1d(.*)/
+						lon = $1.to_f
+					when /^2d(.*)/
+						p $1.to_f, lon
+					else
+						p r
+					end
+				end
+			end
+
+			p obj
+
+			obj
 		end
 
 		def parse_geocode(geocode)
