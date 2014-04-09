@@ -64,8 +64,8 @@ describe GoogleMapUriParser do
 		expect(route.path_list[1].way_points[0].lat).to eq 35.1236666
 		expect(route.path_list[1].way_points[0].lon).to eq 135.7001757
 
-		expect(route.path_list[2].start.lat).to eq 35.1129261 
-		expect(route.path_list[2].start.lon).to eq 135.7104386
+		expect(route.path_list[2].start.lat).to eq 35.1139477 
+		expect(route.path_list[2].start.lon).to eq 135.7058341
 		expect(route.path_list[2].end.lat).to eq 35.1116974
 		expect(route.path_list[2].end.lon).to eq 135.7049884
 

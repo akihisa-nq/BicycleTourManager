@@ -43,15 +43,17 @@ module BTM
 			current = 0
 			via_current = 0
 			(obj.points.size - 1).times do |i|
-				if obj.via.size > via_current && obj.via[via_current] == i + 1
-					path.way_points << obj.points[i + 1]
+				cur = i + 1
+
+				if obj.via.size > via_current && obj.via[via_current] == cur
+					path.way_points << obj.points[cur]
 					via_current += 1
 				else
-					path.end = obj.points[i + 1]
+					path.end = obj.points[cur]
 					route.path_list << path
 
 					path = Path.new
-					path.start = obj.points[i + 1]
+					path.start = obj.points[cur]
 				end
 			end
 
@@ -89,6 +91,7 @@ module BTM
 
 			if /data=(.*)\?/ =~ uri
 				data = $1
+				current = 0
 
 				lon = 0.0
 				data.split("!").each do |r|
@@ -96,14 +99,33 @@ module BTM
 					when /^1d(.*)/
 						lon = $1.to_f
 					when /^2d(.*)/
-						p $1.to_f, lon
-					else
-						p r
+						pt = Point.new( $1.to_f, lon )
+						dis = obj.points[current].distance(pt)
+
+						while current + 2 < obj.points.length
+							cur = obj.points[current + 1].distance(pt)
+							if dis < cur
+								break
+							end
+
+							dis = cur
+							current += 1
+						end
+
+						if current >= 1
+							dis_1 = obj.points[current - 1].distance(pt) + obj.points[current].distance(obj.points[current + 1])
+							dis_2 = obj.points[current + 1].distance(pt) + obj.points[current].distance(obj.points[current - 1])
+							if dis_1 < dis_2
+								current -= 1
+							end
+						end
+
+						current += 1
+						obj.points.insert(current, pt)
+						obj.via << current
 					end
 				end
 			end
-
-			p obj
 
 			obj
 		end
