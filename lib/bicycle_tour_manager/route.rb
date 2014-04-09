@@ -183,24 +183,13 @@ EOS
 			}
 			param["waypoints"] = @way_points.map {|i| i.pack }.join("|") if @way_points.length > 0
 
-			key = "S:#{param["origin"]}, D:#{param["destination"]}, W:#{param["waypoints"]}"
-
 			# ルート探索結果もキャッシュしておく
-			route_result = nil
-
-			cache = PStore.new(route_cache)
-			cache.transaction do
-				if cache[key].nil?
-					request = "http://maps.googleapis.com/maps/api/directions/json"
-					ret = YAML.load(BTM::Http::fetch(request, param))
-					route_result = ret["routes"][0]
-
-					cache[key] = route_result
-					cache.commit
-				else
-					route_result = cache[key]
-				end
-			end
+			key = "S:#{param["origin"]}, D:#{param["destination"]}, W:#{param["waypoints"]}"
+			data = route_cache.cache(key) do
+				request = "http://maps.googleapis.com/maps/api/directions/json"
+				BTM::Http::fetch(request, param)
+			end 
+			route_result = YAML.load(data)["routes"][0]
 
 			@distance = route_result["legs"].map {|i| i["distance"]["value"].to_f / 1000.0 }.inject(:+)
 
@@ -276,25 +265,16 @@ EOS
 		PEAK_SEARCH_DISTANCE = 2.5
 
 		def fetch_elevation_internal(start_index, points, elevation_cache)
-			elevation_result = nil
+			data = elevation_cache.cache(points) do
+				request = "http://maps.googleapis.com/maps/api/elevation/json"
+				param = {
+					"sensor" => "false",
+					"locations" => "enc:" + points
+				}
 
-			cache = PStore.new(elevation_cache)
-			cache.transaction do
-				if cache[points].nil?
-					request = "http://maps.googleapis.com/maps/api/elevation/json"
-					param = {
-						"sensor" => "false",
-						"locations" => "enc:" + points
-					}
-
-					elevation_result = YAML.load(BTM::Http::fetch(request, param))["results"]
-
-					cache[points] = elevation_result
-					cache.commit
-				else
-					elevation_result = cache[points]
-				end
+				BTM::Http::fetch(request, param)
 			end
+			elevation_result = YAML.load(data)["results"]
 
 			@steps[start_index, elevation_result.count] = elevation_result.map do |i|
 					pt = Point.from_params(i["location"])

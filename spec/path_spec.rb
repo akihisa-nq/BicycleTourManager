@@ -5,7 +5,7 @@ include BTM
 require "rgeo"
 
 describe Path do
-	ele_cache = "test_cache_elevation.db"
+	ele_cache = PStoreCache.new("test_cache_elevation.db")
 
 	it "uses geos library" do
 		expect(RGeo::Geos.supported?).to eq true

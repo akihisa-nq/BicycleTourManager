@@ -16,7 +16,8 @@ PLOT_ELEVATION_MAX = 1100
 INPUT_FILE = ARGV.shift
 INPUT_DIR = File.dirname(INPUT_FILE)
 
-gmap_uri_parser = BTM::GoogleMapUriParser.new("#{CACHE_DIR}/cache_geocode.db")
+geo_cache = BTM::PStoreCache.new("#{CACHE_DIR}/cache_geocode.db")
+gmap_uri_parser = BTM::GoogleMapUriParser.new(geo_cache)
 
 tour = BTM::Tour.new
 File.open(INPUT_FILE, "r:utf-8") do |file|
@@ -24,11 +25,11 @@ File.open(INPUT_FILE, "r:utf-8") do |file|
 		line.strip!
 
 		if line =~ /^"PC(\d+)":(.*)$/
+			route_cache = BTM::PStoreCache.new("#{CACHE_DIR}/cache_route.db")
+			ele_cache = BTM::PStoreCache.new("#{CACHE_DIR}/cache_elevation.db")
+
 			route = gmap_uri_parser.parse_uri($2)
-			route.search_route(
-				"#{CACHE_DIR}/cache_route.db",
-				"#{CACHE_DIR}/cache_elevation.db"
-				)
+			route.search_route(route_cache, ele_cache)
 			route.index = $1
 			tour.routes << route
 		end

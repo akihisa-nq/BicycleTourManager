@@ -6,4 +6,4 @@ require "bicycle_tour_manager/gpx_stream"
 require "bicycle_tour_manager/http_helper"
 require "bicycle_tour_manager/route"
 require "bicycle_tour_manager/route_guide"
-
+require "bicycle_tour_manager/cache"

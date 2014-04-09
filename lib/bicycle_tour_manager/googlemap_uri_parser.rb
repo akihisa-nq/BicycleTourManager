@@ -1,7 +1,6 @@
 # coding: utf-8
 
 require "uri"
-require "pstore"
 
 require "bicycle_tour_manager/route"
 require "bicycle_tour_manager/http_helper"
@@ -74,24 +73,17 @@ module BTM
 		end
 
 		def parse_geocode(geocode)
-			data = nil
+			data = @geocode_cache.cache(geocode) do
+				ret = Http::fetch_https(%Q|https://maps.google.co.jp/maps?saddr=1&daddr=2&geocode=#{geocode}%3B#{geocode}&dirflg=w|)
 
-			cache = PStore.new(@geocode_cache)
-			cache.transaction do
-				if cache[geocode].nil?
-					data = Http::fetch_https(%Q|https://maps.google.co.jp/maps?saddr=1&daddr=2&geocode=#{geocode}%3B#{geocode}&dirflg=w|)
-					cache[geocode] = data
-					cache.commit
+				if ret =~ /latlng:{lat:([\d\.]+),lng:([\d\.]+)}/
+					BTM.factory.point($2.to_f, $1.to_f)
 				else
-					data = cache[geocode]
+					BTM.factory.point(0.0, 0.0)
 				end
 			end
 
-			if data =~ /latlng:{lat:([\d\.]+),lng:([\d\.]+)}/
-				Point.new($1.to_f, $2.to_f)
-			else
-				Point.new(0.0, 0.0)
-			end
+			Point.new(data.y, data.x)
 		end
 	end
 end
