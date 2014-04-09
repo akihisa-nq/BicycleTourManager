@@ -18,16 +18,24 @@ module BTM
 			https.verify_mode = OpenSSL::SSL::VERIFY_NONE
 			https.verify_depth = 5
 
-			https.start do
-				response = https.request(request)
+			10.times do
+				begin
+					https.start do
+						response = https.request(request)
 
-				case response
-				when Net::HTTPSuccess
-					response.body
-				else
-					response.value
-				end
+						case response
+						when Net::HTTPSuccess
+							return response.body
+						else
+							return response.value
+						end
+					end
+				rescue
+					sleep(1.0)
+				end				
 			end
+
+			raise Exception.new("cannot recieve data")
 		end
 
 		def self.fetch(uri_str, param, limit = 10)
