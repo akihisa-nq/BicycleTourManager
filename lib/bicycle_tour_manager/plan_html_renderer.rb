@@ -24,8 +24,6 @@ module BTM
 			out << <<EOF
 	<div style="position:relative; float : left; width : 64px; height : 64px;">
 EOF
-		
-			image_root = "file:///" + File.join(File.dirname(__FILE__), "../data").gsub("\\", "/")
 	
 			node.road.keys.each do |i|
 				out << <<EOF
@@ -35,7 +33,7 @@ EOF
 	
 			unless node.orig.nil?
 				out << <<EOF
-	<img src="#{node.image_root}/images/orig_#{node.orig.downcase}.png" style="position:absolute; left:0px; top:0px;"/>
+	<img src="#{image_root}/images/orig_#{node.orig.downcase}.png" style="position:absolute; left:0px; top:0px;"/>
 EOF
 			end
 	
@@ -50,6 +48,10 @@ EOF
 EOF
 	
 			out
+		end
+
+		def image_root
+			"file:///" + File.join(File.dirname(__FILE__), "../data").gsub("\\", "/")
 		end
 
 		def filter text
