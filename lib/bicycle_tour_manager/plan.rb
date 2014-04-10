@@ -9,7 +9,8 @@ module BTM
 			@schedule = []
 		end
 
-		attr_reader :start_time, :routes, :resources, :schedule
+		attr_accessor :start_time
+		attr_reader :routes, :resources, :schedule
 	end
 
 	class ControlPoint
