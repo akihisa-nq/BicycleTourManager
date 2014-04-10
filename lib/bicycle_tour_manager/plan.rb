@@ -142,7 +142,7 @@ module BTM
 			end
 		end
 
-		def valild_direction?
+		def valid_direction?
 			(@orig.nil? || ! @road[@orig].nil?) && (@dest.nil? || ! @road[@dest].nil?)
 		end
 
