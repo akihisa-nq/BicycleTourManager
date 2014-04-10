@@ -5,74 +5,10 @@ $: << File.join(File.dirname(__FILE__), "../lib")
 
 require "bicycle_tour_manager"
 
-# ここから
-plan = BTM::Plan.new
-plan.routes << BTM::ControlPoint.new(1)
-
 INPUT_FILE = ARGV.shift
 INPUT_DIR = File.dirname(INPUT_FILE)
 
-File.open( INPUT_FILE, "r:utf-8" ) do |file|
-	current = BTM::Node.new(1)
-	limit_speed = 15.0
-	target_speed = 15.0
-
-	file.each_line.with_index do |line, i|
-		line[0] = "" if line[0] == "\uFEFF"
-
-		case line
-		when /^-- START:([\d\.]+) --/
-			plan.start_time = $1.to_f
-		when /^-- SCHEDULE:([^ ]+)\s+([\d\.]+|START)\s+([\d\.]+)\s+([^ ]+)\s+(\d+) --/
-			plan.schedule.push(BTM::Schedule.new($1, $2 == "START" ? $start_time : $2.to_f, $3.to_f, $4, $5.to_i))
-		when /^-- RESOURCE:([^ ]+)\s+(\d+)\s+([\d\.]+)\s(\d+) --/
-			plan.resources.push(BTM::Resource.new($1, $2.to_i, $3.to_f, $4.to_i))
-		when /^-- PC(\d+) --/
-			plan.routes << BTM::ControlPoint.new($1.to_i + 1)
-		when /^--\s*$/
-			plan.routes.last.pages << BTM::Page.new
-		when /^-- LIMIT:([\d\.]+) --/
-			current.limit_speed = $1.to_f
-			limit_speed = current.limit_speed
-		when /^-- TARGET:([\d\.]+) --/
-			current.target_speed = $1.to_f
-			target_speed = current.target_speed
-		when /^\+([\d\.]+(km|h))/
-			if $2 == "km"
-				current.distance = $1.to_f
-			else
-				current.rest_time = $1.to_f
-			end
-		when /^\s+$/
-			plan.routes.last.pages.last.nodes << current if current.valid?
-			current = BTM::Node.new(i + 1)
-			current.limit_speed = limit_speed
-			current.target_speed = target_speed
-		when /^\@(.*)\|(.*)\|(.*)$/
-			road = $1
-			dir = $2
-			name = $3.strip
-
-			current.road = Hash[*road.split(/[:,]/).map{|i| i.strip}]
-			current.name = name
-
-			if dir =~ /(.*)->(.*)/
-				current.orig = $1.strip
-				current.dest = $2.strip
-
-				if current.road[current.orig].nil? || current.road[current.dest].nil?
-					$stderr << "間違った方向が PC#{plan.routes.count} のページ #{plan.routes.last.pages.count}、#{plan.routes.last.pages.last.nodes.count} #{current.name} にあります。\n"
-					exit 1
-				end
-			end
-		else
-			current.text += line
-		end
-	end
-
-	plan.routes.last.pages.last.nodes << current if current.valid?
-	plan.routes.delete_at(-1) if plan.routes.last.pages.length == 1 && plan.routes.last.pages.last.nodes.length == 0
-end
+plan = BTM::PlanStream.read(INPUT_FILE)
 
 renderer = BTM::PlanHtmlRenderer.new
 renderer.render(plan, "#{INPUT_DIR}/result.html");

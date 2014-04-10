@@ -47,5 +47,5 @@ tour.routes.each do |route|
 end
 
 BTM::GpxStream.write_routes("#{INPUT_DIR}/route.gpx", tour)
-BTM::RouteGuide.create_template("#{INPUT_DIR}/route_template.txt", tour)
+BTM::PlanStream.create_from_tour("#{INPUT_DIR}/route_template.txt", tour)
 

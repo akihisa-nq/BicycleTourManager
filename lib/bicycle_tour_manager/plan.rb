@@ -18,18 +18,18 @@ module BTM
 			@pages = []
 			@pages << Page.new
 		end
-	
+
 		attr_reader :num, :pages
 	end
-	
+
 	class Page
 		def initialize
 			@nodes = []
 		end
-	
+
 		attr_reader :nodes
 	end
-	
+
 	class Node
 		def initialize( src_line )
 			@text = ""
@@ -41,14 +41,14 @@ module BTM
 			@distance = 0.0
 			@rest_time = 0.0
 		end
-	
+
 		def next_road
 			@dest.nil? ? "" : @road[@dest]
 		end
-	
+
 		def other_roads
 			return "" if @orig.nil?
-	
+
 			@road
 				.to_a
 				.sort_by{|i| dir_id(i[0]) }
@@ -56,7 +56,7 @@ module BTM
 				.map { |v| relative_dir(@orig, v[0]) + " " + v[1] }
 				.join(", ")
 		end
-	
+
 		def next_relative_dir
 			unless @dest.nil? && @orig.nil?
 				relative_dir(@orig, @dest)
@@ -64,7 +64,7 @@ module BTM
 				""
 			end 
 		end
-	
+
 		def dir_id(name)
 			case name
 			when "N"
@@ -85,11 +85,11 @@ module BTM
 				7
 			end
 		end
-	
+
 		def relative_dir( o, d )
 			diff = dir_id(d) - dir_id(o)
 			diff += 8 if diff < 0
-	
+
 			case diff
 			when 0
 				"後ろ"
@@ -109,22 +109,46 @@ module BTM
 				"右後"
 			end
 		end
-	
+
 		def elapsed_time
 			@distance / @limit_speed
 		end
-	
+
 		def target_elapsed_time
 			@distance / @target_speed + @rest_time
 		end
-	
+
 		def valid?
 			@distance > 0 || @rest_time > 0
 		end
-	
+
+		def parse_direction(str)
+			if /\@(.*)\|(.*)\|(.*)/ =~ str
+				road = $1
+				dir = $2
+				name = $3.strip
+
+				@road = Hash[*road.split(/[:,]/).map{|i| i.strip}]
+				@name = name
+
+				if dir =~ /(.*)->(.*)/
+					@orig = $1.strip
+					@dest = $2.strip
+				end
+
+				true
+			else
+				false
+			end
+		end
+
+		def vaild_direction?
+			(@orig.nil? || ! @road[@orig].nil?) && (@dest.nil? || ! @road[@dest].nil?)
+		end
+
 		attr_accessor :text, :name, :road, :orig, :dest, :distance, :src_line, :limit_speed, :target_speed, :rest_time
 	end
-	
+
 	class Schedule
 		def initialize( name, start_time, interval, res, amount )
 			@name = name
@@ -133,29 +157,29 @@ module BTM
 			@resource = res
 			@amount = amount
 		end
-	
+
 		def fire?(prev, now)
 			n = ((now - start_time) / interval).to_i
 			return false if n <= 0
-	
+
 			cur = start_time + n * interval
 			return prev < cur && cur <= now
 		end
-	
+
 		attr_reader :name, :start_time, :interval, :resource, :amount
 	end
-	
+
 	class Task
 		def initialize( schedule )
 			@name = schedule.name
 			@amount = schedule.amount
 			@resource = schedule.resource
 		end
-	
+
 		attr_reader :name, :resource
 		attr_accessor :amount
 	end
-	
+
 	class Resource
 		def initialize( name, amount, recovery_interval, buffer )
 			@name = name
@@ -165,28 +189,28 @@ module BTM
 			@buffer = buffer
 			@using = 0
 		end
-	
+
 		def usable?
 			@start.nil?
 		end
-	
+
 		def check(now)
 			ret = false
-	
+
 			if @start && @start + interval <= now
 				@start = nil
 				@buffer += @using
 				ret = true
 			end
-	
+
 			ret
 		end
-	
+
 		def reserve(now, amount)
 			@start = now
 			@using = amount
 		end
-	
+
 		attr_reader :name, :interval
 		attr_accessor :amount, :buffer
 	end
