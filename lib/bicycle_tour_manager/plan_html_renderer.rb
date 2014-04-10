@@ -51,7 +51,7 @@ EOF
 		end
 
 		def image_root
-			"file:///" + File.join(File.dirname(__FILE__), "../data").gsub("\\", "/")
+			"file:///" + File.join(File.dirname(__FILE__), "../../data").gsub("\\", "/")
 		end
 
 		def filter text
