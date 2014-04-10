@@ -151,9 +151,9 @@ module BTM
 	end
 
 	class Schedule
-		def initialize( name, start_time, interval, res, amount )
+		def initialize( name, start, interval, res, amount )
 			@name = name
-			@start_time = start_time
+			@start_time = start
 			@interval = interval
 			@resource = res
 			@amount = amount

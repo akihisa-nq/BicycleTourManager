@@ -19,7 +19,7 @@ module BTM
 						plan.start_time = $1.to_f
 
 					when /^-- SCHEDULE:([^ ]+)\s+([\d\.]+|START)\s+([\d\.]+)\s+([^ ]+)\s+(\d+) --/
-						plan.schedule.push(Schedule.new($1, $2 == "START" ? $start_time : $2.to_f, $3.to_f, $4, $5.to_i))
+						plan.schedule.push(Schedule.new($1, $2 == "START" ? plan.start_time : $2.to_f, $3.to_f, $4, $5.to_i))
 
 					when /^-- RESOURCE:([^ ]+)\s+(\d+)\s+([\d\.]+)\s(\d+) --/
 						plan.resources.push(Resource.new($1, $2.to_i, $3.to_f, $4.to_i))
