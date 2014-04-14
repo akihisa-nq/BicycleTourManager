@@ -6,7 +6,7 @@ module BTM
 	class PlanHtmlRenderer
 		def render(plan, output)
 			@plan = plan
-			@context = PlanContext.new(@plan)
+			@context = PlanContext.new(@plan, 8)
 
 			File.open(output, "w:utf-8") do |output|
 				File.open(File.join(File.dirname(__FILE__), "plan.html.erb"), "r:utf-8") do |file|

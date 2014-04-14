@@ -33,6 +33,7 @@ EOS
 			@limit_speed = 15.0
 			@target_speed = 15.0
 			@rest_time = 0.0
+			@page_break = false
 		end
 
 		def next_road
@@ -82,7 +83,11 @@ EOS
 			(@orig.nil? || ! @road[@orig].nil?) && (@dest.nil? || ! @road[@dest].nil?)
 		end
 
-		attr_accessor :text, :name, :road, :orig, :dest, :limit_speed, :target_speed, :rest_time
+		def page_break?
+			@page_break
+		end
+
+		attr_accessor :text, :name, :road, :orig, :dest, :limit_speed, :target_speed, :rest_time, :page_break
 
 		private
 
@@ -140,7 +145,7 @@ EOS
 			@waypoint_index = -1
 			@distance_from_start = 0.0
 			@min_max = nil # nil, :mark, :mark_min, :mark_max
-			@info = NodeInfo.new
+			@info = nil
 		end
 
 		def self.from_params(params)
@@ -186,8 +191,7 @@ EOS
 			(self.distance_from_start - pt.distance_from_start).abs
 		end
 
-		attr_reader :info
-		attr_accessor :point_geos, :ele, :time, :waypoint_index, :distance_from_start, :min_max
+		attr_accessor :point_geos, :ele, :time, :waypoint_index, :distance_from_start, :min_max, :info
 
 		private
 

@@ -10,6 +10,7 @@ module BTM
 			plan.routes.last.path_list << Path.new
 
 			current = Point.new(0.0, 0.0)
+			current.info = NodeInfo.new
 			limit_speed = 15.0
 			target_speed = 15.0
 			total_distance = 0.0
@@ -51,6 +52,7 @@ module BTM
 						plan.routes.last.path_list << Path.new
 
 					when /^--\s*$/
+						plan.routes.last.path_list.last.steps.last.info.page_break = true
 						plan.routes.last.path_list << Path.new
 
 					when /^-- LIMIT:([\d\.]+) --/
@@ -78,6 +80,7 @@ module BTM
 						end
 
 						current = Point.new(0.0, 0.0)
+						current.info = NodeInfo.new
 						current.info.limit_speed = limit_speed
 						current.info.target_speed = target_speed
 

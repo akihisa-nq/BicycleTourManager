@@ -2,9 +2,10 @@
 
 module BTM
 	class PlanContext
-		def initialize(plan)
+		def initialize(plan, per_page)
 			@plan = plan
 			@node = Point.new(0.0, 0.0)
+			@node.info = NodeInfo.new
 			@pc = PlanRouteContext.new(@node)
 
 			@total_time = plan.start_date
@@ -16,6 +17,8 @@ module BTM
 			@task_queue = []
 			@res_context = plan.resources.map {|r| ResourceContext.new(r) }
 			@schedule_context = plan.schedule.map {|s| ScheduleContext.new(s) }
+
+			@per_page = per_page
 		end
 
 
@@ -81,20 +84,32 @@ module BTM
 			@plan.routes.each do |route|
 				@route = route
 				@pc.reset(@node)
+				page_number = 0
 
-				@route.path_list.each.with_index do |page, i|
-					@page = page
-					@page_number = i
+				@page_node = []
+				@route.path_list.each do |page|
+					page.steps.each do |node|
+						if node.info
+							@page_node << node
 
-					block.call(@route, @page, i)
+							if node.info.page_break? || @page_node.length >= @per_page
+								block.call(@route, page_number)
+								@page_node.clear
+								page_number += 1
+							end
+						end
+					end
+				end
+
+				if @page_node.length > 0
+					block.call(@route, page_number)
 				end
 			end
 		end
 
 		def each_node(&block)
-			@page.steps.each do |node|
+			@page_node.each do |node|
 				increment(node)
-
 				block.call(node)
 			end
 		end
