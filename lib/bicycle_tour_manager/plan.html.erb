@@ -50,159 +50,60 @@
 		</style>
 	</head>
 	<body>
-<%
-total_distance = 0.0
-total_time = plan.start_time
-total_target_time = plan.start_time
-previous_total_target_time = plan.start_time
-
-plan.routes.each do |pc|
-	pc_total_distance = 0.0
-	pc_total_time = 0.0
-	pc_total_target_time = 0.0
-
-	pc.pages.each.with_index do |page, i|
-%>
+		<% @context.each_page do |pc, page, i| %>
 		<div class="page">
-			<h1>PC<%= pc.num %> <%= i + 1 %>/<%= pc.pages.length %></h1>
-<%
-			pc_alt_image = File.absolute_path(File.join(INPUT_DIR, "PC#{pc.num}.png"))
-			if File.exist?(pc_alt_image)
-%>
-	<div style="text-align:center">
-		<img src="file:///<%= pc_alt_image.gsub("\\", "/") %>" style="width:100%" />
-	</div>
-<%
-			end
+			<h1>PC<%= pc.index %> <%= i + 1 %>/<%= pc.path_list.length %></h1>
+			<%= altitude_graph(pc) %>
 
-			page.nodes.each do |node|
-				total_distance += node.distance
-				pc_total_distance += node.distance
+			<% @context.each_node do |node| %>
+			<table>
+			<tr>
+				<td style="font-weight : bold; width : 11ex;"><%= pc_total_distance %> km</td>
+				<td rowspan="3" style="width : 64px; height:64px;"><%= render_node(node) %></td>
+				<td><%= node.info.name %></td>
+				<td><%= node.info.next_relative_dir %> <%= node.info.next_road %></td>
+				<td style="width : 11ex;"><%= total_distance %> km</td>
+			</tr>
+			<tr>
+				<td style="width : 11ex;"><%= node_addition(node) %></td>
+				<td colspan="2" style="font-size:7pt"><%= node.info.other_roads %></td>
+				<td style="font-weight : bold; width : 11ex;"><%= total_elapsed %></td>
+			</tr>
+			<tr>
+				<td style="font-weight : bold; width : 11ex;"><%= pc_total_elapsed %></td>
+				<td colspan="2" style="font-size:7pt"><%= filter(node.info.text) %></td>
+				<td style="width:11ex;"><span style="font-size:7pt;">速</span><%= node.info.target_speed %>/<%= node.info.limit_speed %></td>
+			</tr>
+			</table>
 
-				format_time = lambda do |time|
-					hour = time.to_i
-					minute = ((time - hour.to_f) * 60).to_i
-					hour %= 24
-					"%02d:%02d" % [hour, minute]
-				end
-
-				total_time += node.elapsed_time
-				pc_total_time += node.elapsed_time
-
-				total_target_time += node.target_elapsed_time
-				pc_total_target_time += node.target_elapsed_time
-%>
-	<!-- <%= node.src_line %> -->
-
-	<table>
-	<tr>
-		<td style="font-weight : bold; width : 11ex;"><%= "%.1f" % [pc_total_distance] %> km</td>
-		<td rowspan="3" style="width : 64px; height:64px;"><%= render_node(node) %></td>
-		<td><%= node.name %></td>
-		<td><%= node.next_relative_dir %> <%= node.next_road %></td>
-		<td style="width : 11ex;"><%= "%.1f" % [total_distance] %> km</td>
-	</tr>
-	<tr>
-<%				if node.distance > 0 then %>
-		<td style="width : 11ex;">+ <%= "%.1f" % [node.distance] %> km</td>
-<%				else %>
-		<td style="width : 11ex;">+ <%= "%02d:%02d" % [node.rest_time.to_i, (node.rest_time % 1.0) * 60] %></td>
-<%				end %>
-		<td colspan="2" style="font-size:7pt"><%= node.other_roads %></td>
-		<td style="font-weight : bold; width : 11ex;"><%= format_time.call(total_target_time) %>/<%= format_time.call(total_time) %></td>
-	</tr>
-	<tr>
-		<td style="font-weight : bold; width : 11ex;"><%= format_time.call(pc_total_target_time) %>/<%= format_time.call(pc_total_time) %></td>
-		<td colspan="2" style="font-size:7pt"><%= filter(node.text) %></td>
-		<td style="width:11ex;"><span style="font-size:7pt;">速</span><%= node.target_speed %>/<%= node.limit_speed %></td>
-	</tr>
-	</table>
-	<div style="float:left; font-size:3pt; width : 1%;">
-		<br />
-		<br />
-		<br />
-		＞<br />
-		<br />
-		<br />
-		<br />
-	</div>
-<%
-			end
-
-			if pc.pages.length - 1 == i
-				# 定期タスクの処理
-%>
-			<div class="comment">
-<%
-				plan.resources.each do |r|
-					if r.check(total_target_time)
-%>
-					【<%= r.name %> 完了】
-<%					elsif not r.usable? %>
-					【<%= r.name %> 使用中】
-<%
-					end
-				end
-
-				plan.schedule.each do |sch|
-					if sch.fire?( previous_total_target_time, total_target_time )
-						task_queue.push(Task.new(sch))
-						plan.resources.find{|r| r.name == sch.resource}.buffer -= sch.amount
-%>
-					【<%= sch.name %>】
-<%
-					end
-				end
-
-				use = {}
-
-				res = plan.resources.select{|r| r.usable? }.map{|r| r.dup}
-				while true
-					res_use = nil
-					task = task_queue.find { |t| res_use = res.find {|r| r.name == t.resource} }
-					break unless task
-
-					if task.amount > res_use.amount
-						task.amount -= res_use.amount
-						res.delete(res_use)
-
-						use[task.resource] ||= 0
-						use[task.resource] += res_use.amount
-					else
-						res_use.amount -= task.amount
-						res.delete(res_use) if res_use.amount == 0
-						task_queue.delete(task)
-
-						use[task.resource] ||= 0
-						use[task.resource] += task.amount
-					end
-				end
-
-				use.each do |key, value|
-					check = plan.resources.find {|r| r.usable? && r.name == key }
-					check.reserve(total_target_time, value) if check
-%>
-					【<%= key %> <%= value %>】
-<%
-				end
-
-				plan.resources.each do |r|
-					if r.buffer < 0
-						throw Exception.new("#{r.name} が #{- r.buffer} 不足")
-					end
-
-%>
-					- <%= r.name %> <%= r.buffer %>
-<%				end %>
+			<div style="float:left; font-size:3pt; width : 1%;">
+				<br />
+				<br />
+				<br />
+				＞<br />
+				<br />
+				<br />
+				<br />
 			</div>
-<%
-				previous_total_target_time = total_target_time
-			end
-%>
-	</div>
-<%
-		end
-	end
-%>
-</body>
+			<% end  %>
+
+			<% @context.update_resource_status do %>
+			<div class="comment">
+				<% @context.res_context.each do |r| %>
+				<%= resource_status(r) %>
+				<% end %>
+				<% @context.schedule_context.each do |sch| %>
+				<%= schedule_status(sch) %>
+				<% end %>
+				<% @context.use do |key, value| %>
+				【<%= key %> <%= value %>】
+				<% end %>
+				<% @context.res_context.each do |r| %>
+				<%= resources_left(r) %>
+				<% end %>
+			</div>
+			<% end %>
+		</div>
+		<% end %>
+	</body>
 </html>

@@ -3,68 +3,101 @@
 module BTM
 	class PlanStream
 		def self.read(input_file)
-			plan = Plan.new
-			plan.routes << ControlPoint.new(1)
+			plan = Tour.new
+			plan.start_date = Time.new(2000, 1, 1, 0, 0, 0, 0)
+			plan.routes << Route.new
+			plan.routes.last.index = 1
+			plan.routes.last.path_list << Path.new
 
-			current = Node.new(1)
+			current = Point.new(0.0, 0.0)
 			limit_speed = 15.0
 			target_speed = 15.0
+			total_distance = 0.0
+			need_add = false
 
 			File.open( input_file, "r:utf-8" ) do |file|
-				file.each_line.with_index do |line, i|
+				file.each_line do |line|
 					line[0] = "" if line[0] == "\uFEFF"
 
 					case line
 					when /^-- START:([\d\.]+) --/
-						plan.start_time = $1.to_f
+						plan.start_date = parse_time($1)
 
 					when /^-- SCHEDULE:([^ ]+)\s+([\d\.]+|START)\s+([\d\.]+)\s+([^ ]+)\s+(\d+) --/
-						plan.schedule.push(Schedule.new($1, $2 == "START" ? plan.start_time : $2.to_f, $3.to_f, $4, $5.to_i))
+						name = $1
+						start_time = $2
+						interval = ($3.to_f * 3600).to_i
+						res = $4
+						amount = $5.to_i
+
+						if start_time == "START"
+							start_time = plan.start_date
+						else
+							start_time = parse_time(start_time)
+						end
+
+						plan.schedule.push(Schedule.new(name, start_time, interval, res, amount))
 
 					when /^-- RESOURCE:([^ ]+)\s+(\d+)\s+([\d\.]+)\s(\d+) --/
-						plan.resources.push(Resource.new($1, $2.to_i, $3.to_f, $4.to_i))
+						name = $1
+						amount = $2.to_i
+						interval = ($3.to_f * 3600).to_i
+						buffer = $4.to_i
+						plan.resources.push(Resource.new(name, amount, interval, buffer))
 
 					when /^-- PC(\d+) --/
-						plan.routes << ControlPoint.new($1.to_i + 1)
+						plan.routes << Route.new
+						plan.routes.last.index = $1.to_i + 1
+						plan.routes.last.path_list << Path.new
 
 					when /^--\s*$/
-						plan.routes.last.pages << Page.new
+						plan.routes.last.path_list << Path.new
 
 					when /^-- LIMIT:([\d\.]+) --/
-						current.limit_speed = $1.to_f
-						limit_speed = current.limit_speed
+						current.info.limit_speed = $1.to_f
+						limit_speed = current.info.limit_speed
 
 					when /^-- TARGET:([\d\.]+) --/
-						current.target_speed = $1.to_f
-						target_speed = current.target_speed
+						current.info.target_speed = $1.to_f
+						target_speed = current.info.target_speed
 
 					when /^\+([\d\.]+(km|h))/
 						if $2 == "km"
-							current.distance = $1.to_f
+							total_distance += $1.to_f
 						else
-							current.rest_time = $1.to_f
+							current.info.rest_time = $1.to_f
 						end
 
+						current.distance_from_start = total_distance
+						need_add = true
+
 					when /^\s+$/
-						plan.routes.last.pages.last.nodes << current if current.valid?
-						current = Node.new(i + 1)
-						current.limit_speed = limit_speed
-						current.target_speed = target_speed
+						if need_add
+							plan.routes.last.path_list.last.steps << current
+							need_add = false
+						end
+
+						current = Point.new(0.0, 0.0)
+						current.info.limit_speed = limit_speed
+						current.info.target_speed = target_speed
 
 					else
-						if current.parse_direction(line)
-							unless current.valid_direction?
-								$stderr << "間違った方向が PC#{plan.routes.count} のページ #{plan.routes.last.pages.count}、#{plan.routes.last.pages.last.nodes.count} #{current.name} にあります。\n"
+						if current.info.parse_direction(line)
+							unless current.info.valid_direction?
+								$stderr << "間違った方向が PC#{plan.routes.count} のページ #{plan.routes.last.path_list.count}、#{plan.routes.last.path_list.last.steps.count} #{current.name} にあります。\n"
 								exit 1
 							end
 						else
-							current.text += line
+							current.info.text += line
 						end
 					end
 				end
 
-				plan.routes.last.pages.last.nodes << current if current.valid?
-				plan.routes.delete_at(-1) if plan.routes.last.pages.length == 1 && plan.routes.last.pages.last.nodes.length == 0
+				if need_add
+					plan.routes.last.path_list.last.steps << current
+				end
+
+				plan.routes.delete_at(-1) if plan.routes.last.path_list.length == 1 && plan.routes.last.path_list.last.steps.length == 0
 			end
 
 			plan
@@ -108,6 +141,13 @@ EOF
 EOF
 				end
 			end
+		end
+
+		private
+
+		def self.parse_time(str)
+			/(\d+)\.(\d+)/ =~ str
+			Time.new(2000, 1, 1, $1.to_i, $2.to_i * 60 / 100, 0, 0)			
 		end
 	end
 end

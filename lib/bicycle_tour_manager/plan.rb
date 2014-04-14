@@ -1,173 +1,204 @@
 # coding: utf-8
 
 module BTM
-	class Plan
-		def initialize
-			@start_time = 0.0
-			@routes = []
-			@resources = []
-			@schedule = []
+	class PlanContext
+		def initialize(plan)
+			@plan = plan
+			@node = Point.new(0.0, 0.0)
+			@pc = PlanRouteContext.new(@node)
+
+			@total_time = plan.start_date
+			@total_target_time = plan.start_date
+
+			@distance_addition = 0.0
+
+			@previous_total_target_time = plan.start_date
+			@task_queue = []
+			@res_context = plan.resources.map {|r| ResourceContext.new(r) }
+			@schedule_context = plan.schedule.map {|s| ScheduleContext.new(s) }
 		end
 
-		attr_accessor :start_time
-		attr_reader :routes, :resources, :schedule
-	end
 
-	class ControlPoint
-		def initialize num
-			@num = num
-			@pages = []
-			@pages << Page.new
-		end
+		def update_resource_status(&block)
+			false unless @route.path_list.length - 1 == @page_number
 
-		attr_reader :num, :pages
-	end
-
-	class Page
-		def initialize
-			@nodes = []
-		end
-
-		attr_reader :nodes
-	end
-
-	class Node
-		def initialize( src_line )
-			@text = ""
-			@name = ""
-			@road = {}
-			@limit_speed = 15.0
-			@target_speed = 15.0
-			@src_line = src_line
-			@distance = 0.0
-			@rest_time = 0.0
-		end
-
-		def next_road
-			@dest.nil? ? "" : @road[@dest]
-		end
-
-		def other_roads
-			return "" if @orig.nil?
-
-			@road
-				.to_a
-				.sort_by{|i| dir_id(i[0]) }
-				.select{|v| v[0] != @orig && v[0] != @dest }
-				.map { |v| relative_dir(@orig, v[0]) + " " + v[1] }
-				.join(", ")
-		end
-
-		def next_relative_dir
-			unless @dest.nil? && @orig.nil?
-				relative_dir(@orig, @dest)
-			else
-				""
-			end 
-		end
-
-		def dir_id(name)
-			case name
-			when "N"
-				0
-			when "NE"
-				1
-			when "E"
-				2
-			when "SE"
-				3
-			when "S"
-				4
-			when "SW"
-				5
-			when "W"
-				6
-			when "NW"
-				7
+			@res_context.each do |res|
+				res.update(@total_target_time)
 			end
-		end
 
-		def relative_dir( o, d )
-			diff = dir_id(d) - dir_id(o)
-			diff += 8 if diff < 0
+			@schedule_context.each do |sch|
+				sch.update(@previous_total_target_time, @total_target_time)
+				if sch.fired?
+					@task_queue.push(Task.new(sch.schedule))
 
-			case diff
-			when 0
-				"後ろ"
-			when 1
-				"左後"
-			when 2
-				"左折"
-			when 3
-				"左前"
-			when 4
-				"直進"
-			when 5
-				"右前"
-			when 6
-				"右折"
-			when 7
-				"右後"
-			end
-		end
+					res = @res_context.find do |r|
+							r.resource.name == sch.schedule.resource
+						end
 
-		def elapsed_time
-			@distance / @limit_speed
-		end
-
-		def target_elapsed_time
-			@distance / @target_speed + @rest_time
-		end
-
-		def valid?
-			@distance > 0 || @rest_time > 0
-		end
-
-		def parse_direction(str)
-			if /\@(.*)\|(.*)\|(.*)/ =~ str
-				road = $1
-				dir = $2
-				name = $3.strip
-
-				@road = Hash[*road.split(/[:,]/).map{|i| i.strip}]
-				@name = name
-
-				if dir =~ /(.*)->(.*)/
-					@orig = $1.strip
-					@dest = $2.strip
+					res.buffer -= sch.schedule.amount
 				end
+ 			end
 
-				true
-			else
-				false
+			@use = {}
+
+			res = @res_context.select{|r| r.usable? }.map{|r| r.dup}
+			while true
+				res_use = nil
+				task = @task_queue.find { |t| res_use = res.find {|r| r.resource.name == t.resource} }
+				break unless task
+
+				if task.amount > res_use.amount
+					task.amount -= res_use.amount
+					res.delete(res_use)
+
+					@use[task.resource] ||= 0
+					@use[task.resource] += res_use.amount
+				else
+					res_use.amount -= task.amount
+					res.delete(res_use) if res_use.amount == 0
+					@task_queue.delete(task)
+
+					@use[task.resource] ||= 0
+					@use[task.resource] += task.amount
+				end
+			end
+
+			@use.each do |key, value|
+				check = @res_context.find {|r| r.usable? && r.resource.name == key }
+				check.reserve(@total_target_time, value) if check
+			end
+
+			block.call
+
+			@previous_total_target_time = @total_target_time
+		end
+
+		def pc_total_distance
+			@pc.total_distance(@node)
+		end
+
+		def each_page(&block)
+			@plan.routes.each do |route|
+				@route = route
+				@pc.reset(@node)
+
+				@route.path_list.each.with_index do |page, i|
+					@page = page
+					@page_number = i
+
+					block.call(@route, @page, i)
+				end
 			end
 		end
 
-		def valid_direction?
-			(@orig.nil? || ! @road[@orig].nil?) && (@dest.nil? || ! @road[@dest].nil?)
+		def each_node(&block)
+			@page.steps.each do |node|
+				increment(node)
+
+				block.call(node)
+			end
 		end
 
-		attr_accessor :text, :name, :road, :orig, :dest, :distance, :src_line, :limit_speed, :target_speed, :rest_time
+		attr_reader :total_time, :total_target_time, :distance_addition, :pc, :node, :task_queue, :res_context, :schedule_context, :use
+
+		private
+
+		def increment(node)
+			@distance_addition = node.distance_on_path(@node)
+
+			elapsed_time = (@distance_addition / @node.info.limit_speed * 3600).to_i
+			target_elapsed_time = ((@distance_addition / @node.info.limit_speed + node.info.rest_time) * 3600).to_i
+
+			@total_time += elapsed_time
+			@total_target_time += target_elapsed_time
+
+			@pc.increment(elapsed_time, target_elapsed_time)
+
+			@node = node
+		end
 	end
 
-	class Schedule
-		def initialize( name, start, interval, res, amount )
-			@name = name
-			@start_time = start
-			@interval = interval
+	class PlanRouteContext
+		def initialize(node)
+			reset(node)
+		end
+
+		def reset(node)
+			@start = node
+			@total_time = Time.new(2000, 1, 1, 0, 0, 0, 0)
+			@total_target_time = Time.new(2000, 1, 1, 0, 0, 0, 0)
+		end
+
+		def increment(elapsed_time, target_elapsed_time)
+			@total_time += elapsed_time
+			@total_target_time += target_elapsed_time
+		end
+
+		def total_distance(node)
+			node.distance_on_path(@start)
+		end
+
+		attr_accessor :total_time, :total_target_time
+	end
+
+	class ResourceContext
+		def initialize(res)
 			@resource = res
-			@amount = amount
+
+			@start = nil
+			@using = 0
+			@status = ""
+
+			@buffer = res.buffer
+			@amount = res.amount
 		end
 
-		def fire?(prev, now)
-			n = ((now - start_time) / interval).to_i
-			return false if n <= 0
-
-			cur = start_time + n * interval
-			return prev < cur && cur <= now
+		def usable?
+			@start.nil?
 		end
 
-		attr_reader :name, :start_time, :interval, :resource, :amount
+		def update(now)
+			ret = false
+
+			if @start && @start + @resource.interval <= now
+				@start = nil
+				@buffer += @using
+				ret = true
+			end
+
+			if ret
+				@status = "完了"
+			elsif not usable?
+				@status = "使用中"
+			else
+				@status = ""
+			end
+		end
+
+		def reserve(now, amount)
+			@start = now
+			@using = amount
+		end
+
+		attr_reader :resource, :status
+		attr_accessor :buffer, :amount
+	end
+
+	class ScheduleContext
+		def initialize(sch)
+			@schedule = sch
+			@fired = false
+		end
+
+		def update(prev, now)
+			@fired = @schedule.fire?( prev, now )
+		end
+
+		def fired?
+			@fired
+		end
+
+		attr_reader :schedule
 	end
 
 	class Task
@@ -179,41 +210,6 @@ module BTM
 
 		attr_reader :name, :resource
 		attr_accessor :amount
-	end
-
-	class Resource
-		def initialize( name, amount, recovery_interval, buffer )
-			@name = name
-			@amount = amount
-			@interval = recovery_interval
-			@start = nil
-			@buffer = buffer
-			@using = 0
-		end
-
-		def usable?
-			@start.nil?
-		end
-
-		def check(now)
-			ret = false
-
-			if @start && @start + interval <= now
-				@start = nil
-				@buffer += @using
-				ret = true
-			end
-
-			ret
-		end
-
-		def reserve(now, amount)
-			@start = now
-			@using = amount
-		end
-
-		attr_reader :name, :interval
-		attr_accessor :amount, :buffer
 	end
 end
 

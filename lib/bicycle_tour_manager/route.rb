@@ -25,6 +25,113 @@ EOS
 			)
 	end
 
+	class NodeInfo
+		def initialize
+			@text = ""
+			@name = ""
+			@road = {}
+			@limit_speed = 15.0
+			@target_speed = 15.0
+			@rest_time = 0.0
+		end
+
+		def next_road
+			@dest.nil? ? "" : @road[@dest]
+		end
+
+		def other_roads
+			return "" if @orig.nil?
+
+			@road
+				.to_a
+				.sort_by{|i| self.class.dir_id(i[0]) }
+				.select{|v| v[0] != @orig && v[0] != @dest }
+				.map { |v| relative_dir(@orig, v[0]) + " " + v[1] }
+				.join(", ")
+		end
+
+		def next_relative_dir
+			unless @dest.nil? && @orig.nil?
+				self.class.relative_dir(@orig, @dest)
+			else
+				""
+			end 
+		end
+
+		def parse_direction(str)
+			if /\@(.*)\|(.*)\|(.*)/ =~ str
+				road = $1
+				dir = $2
+				name = $3.strip
+
+				@road = Hash[*road.split(/[:,]/).map{|i| i.strip}]
+				@name = name
+
+				if dir =~ /(.*)->(.*)/
+					@orig = $1.strip
+					@dest = $2.strip
+				end
+
+				true
+			else
+				false
+			end
+		end
+
+		def valid_direction?
+			(@orig.nil? || ! @road[@orig].nil?) && (@dest.nil? || ! @road[@dest].nil?)
+		end
+
+		attr_accessor :text, :name, :road, :orig, :dest, :limit_speed, :target_speed, :rest_time
+
+		private
+
+		def self.dir_id(name)
+			case name
+			when "N"
+				0
+			when "NE"
+				1
+			when "E"
+				2
+			when "SE"
+				3
+			when "S"
+				4
+			when "SW"
+				5
+			when "W"
+				6
+			when "NW"
+				7
+			end
+		end
+
+		def self.relative_dir( o, d )
+			diff = dir_id(d) - dir_id(o)
+			diff += 8 if diff < 0
+
+			case diff
+			when 0
+				"後ろ"
+			when 1
+				"左後"
+			when 2
+				"左折"
+			when 3
+				"左前"
+			when 4
+				"直進"
+			when 5
+				"右前"
+			when 6
+				"右折"
+			when 7
+				"右後"
+			end
+		end
+	end
+
 	class Point
 		def initialize(lat, lon, ele=0.0)
 			@point_geos = BTM.factory.point(lon, lat)
@@ -33,6 +140,7 @@ EOS
 			@waypoint_index = -1
 			@distance_from_start = 0.0
 			@min_max = nil # nil, :mark, :mark_min, :mark_max
+			@info = NodeInfo.new
 		end
 
 		def self.from_params(params)
@@ -78,6 +186,7 @@ EOS
 			(self.distance_from_start - pt.distance_from_start).abs
 		end
 
+		attr_reader :info
 		attr_accessor :point_geos, :ele, :time, :waypoint_index, :distance_from_start, :min_max
 
 		private
@@ -335,6 +444,8 @@ EOS
 			@start_date = Time.now
 			@finish_date = Time.now
 			@original_file_path = ""
+			@resources = []
+			@schedule = []
 		end
 
 		def sort!
@@ -389,6 +500,37 @@ EOS
 		end
 
 		attr_reader :routes
-		attr_accessor :name, :start_date, :finish_date, :original_file_path
+		attr_accessor :name, :start_date, :finish_date, :original_file_path, :resources, :schedule
+	end
+
+	class Resource
+		def initialize( name, amount, recovery_interval, buffer )
+			@name = name
+			@amount = amount
+			@interval = recovery_interval
+			@buffer = buffer
+		end
+
+		attr_reader :name, :interval, :amount, :buffer
+	end
+
+	class Schedule
+		def initialize( name, start, interval, res, amount )
+			@name = name
+			@start_time = start
+			@interval = interval
+			@resource = res
+			@amount = amount
+		end
+
+		def fire?(prev, now)
+			n = ((now - start_time) / interval).to_i
+			return false if n <= 0
+
+			cur = start_time + n * interval
+			return prev < cur && cur <= now
+		end
+
+		attr_reader :name, :start_time, :interval, :resource, :amount
 	end
 end
