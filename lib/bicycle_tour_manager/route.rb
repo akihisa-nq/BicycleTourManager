@@ -113,6 +113,8 @@ EOS
 		end
 
 		def self.relative_dir( o, d )
+			"" if o.nil? || d.nil? || o.downcase == "c" || d.downcase == "c"
+
 			diff = dir_id(d) - dir_id(o)
 			diff += 8 if diff < 0
 
