@@ -92,7 +92,7 @@ EOS
 		private
 
 		def self.dir_id(name)
-			case name
+			case name.upcase
 			when "N"
 				0
 			when "NE"

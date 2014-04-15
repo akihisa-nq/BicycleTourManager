@@ -7,6 +7,7 @@ module BTM
 		def render(plan, output)
 			@plan = plan
 			@context = PlanContext.new(@plan, 8)
+			@output = output
 
 			File.open(output, "w:utf-8") do |output|
 				File.open(File.join(File.dirname(__FILE__), "plan.html.erb"), "r:utf-8") do |file|
@@ -20,7 +21,7 @@ module BTM
 		private
 
 		def altitude_graph(route)
-			pc_alt_image = File.absolute_path(File.join(INPUT_DIR, "PC#{route.index}.png"))
+			pc_alt_image = File.absolute_path(File.join(File.dirname(@output), "PC#{route.index}.png"))
 			if File.exist?(pc_alt_image)
 				<<-EOS
 <div style="text-align:center">
