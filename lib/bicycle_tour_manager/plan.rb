@@ -84,7 +84,23 @@ module BTM
 			@plan.routes.each do |route|
 				@route = route
 				@pc.reset(@node)
+				page_max = 0
 				page_number = 0
+
+				count = 0
+				@route.path_list.each do |page|
+					page.steps.each do |node|
+						if node.info
+							count += 1
+
+							if node.info.page_break? || count >= @per_page
+								count = 0
+								page_max += 1
+							end
+						end
+					end
+				end
+				page_max += 1 if count > 0
 
 				@page_node = []
 				@route.path_list.each do |page|
@@ -93,7 +109,7 @@ module BTM
 							@page_node << node
 
 							if node.info.page_break? || @page_node.length >= @per_page
-								block.call(@route, page_number)
+								block.call(@route, page_number, page_max)
 								@page_node.clear
 								page_number += 1
 							end
@@ -102,7 +118,7 @@ module BTM
 				end
 
 				if @page_node.length > 0
-					block.call(@route, page_number)
+					block.call(@route, page_number, page_max)
 				end
 			end
 		end

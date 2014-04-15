@@ -50,9 +50,9 @@
 		</style>
 	</head>
 	<body>
-		<% @context.each_page do |pc, i| %>
+		<% @context.each_page do |pc, i, page_max| %>
 		<div class="page">
-			<h1>PC<%= pc.index %> <%= i + 1 %>/<%= pc.path_list.length %></h1>
+			<h1>PC<%= pc.index %> <%= i + 1 %>/<%= page_max %></h1>
 			<%= altitude_graph(pc) %>
 
 			<% @context.each_node do |node| %>
