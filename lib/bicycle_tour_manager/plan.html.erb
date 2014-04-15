@@ -56,6 +56,27 @@
 			<%= altitude_graph(pc) %>
 
 			<% @context.each_node do |node| %>
+			<% if node.info.hide? %>
+			<table>
+			<tr>
+				<td style="font-weight : bold; width : 11ex;">---- km</td>
+				<td rowspan="3" style="width : 64px; height:64px;"><div style="display:inline-block;width:64px;height:64px;">&nbsp;</div></td>
+				<td>????</td>
+				<td>????</td>
+				<td style="width : 11ex;">-- km</td>
+			</tr>
+			<tr>
+				<td style="width : 11ex;">+ -- km</td>
+				<td colspan="2" style="font-size:7pt"> </td>
+				<td style="font-weight : bold; width : 11ex;">-:-/-:-</td>
+			</tr>
+			<tr>
+				<td style="font-weight : bold; width : 11ex;">-:-/-:-</td>
+				<td colspan="2" style="font-size:7pt"> </td>
+				<td style="width:11ex;"><span style="font-size:7pt;">速</span>--/--</td>
+			</tr>
+			</table>
+			<% else %>
 			<table>
 			<tr>
 				<td style="font-weight : bold; width : 11ex;"><%= pc_total_distance %> km</td>
@@ -75,6 +96,7 @@
 				<td style="width:11ex;"><span style="font-size:7pt;">速</span><%= node.info.target_speed %>/<%= node.info.limit_speed %></td>
 			</tr>
 			</table>
+			<% end %>
 
 			<div style="float:left; font-size:3pt; width : 1%;">
 				<br />

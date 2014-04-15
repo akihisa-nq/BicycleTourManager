@@ -39,6 +39,14 @@ module BTM
 
 						plan.schedule.push(Schedule.new(name, start_time, interval, res, amount))
 
+					when /^\[([^\]]*)\]/
+						$1.split(",").each do |s|
+							case s.downcase
+							when "hide"
+								current.info.hide = true
+							end
+						end
+
 					when /^-- RESOURCE:([^ ]+)\s+(\d+)\s+([\d\.]+)\s(\d+) --/
 						name = $1
 						amount = $2.to_i

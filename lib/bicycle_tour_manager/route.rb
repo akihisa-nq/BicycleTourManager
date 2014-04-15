@@ -34,6 +34,7 @@ EOS
 			@target_speed = 15.0
 			@rest_time = 0.0
 			@page_break = false
+			@hide = false
 		end
 
 		def next_road
@@ -87,7 +88,11 @@ EOS
 			@page_break
 		end
 
-		attr_accessor :text, :name, :road, :orig, :dest, :limit_speed, :target_speed, :rest_time, :page_break
+		def hide?
+			@hide
+		end
+
+		attr_accessor :text, :name, :road, :orig, :dest, :limit_speed, :target_speed, :rest_time, :page_break, :hide
 
 		private
 
