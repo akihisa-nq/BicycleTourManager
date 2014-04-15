@@ -4,9 +4,13 @@ require "erb"
 
 module BTM
 	class PlanHtmlRenderer
+		def initialize(option)
+			@option = option
+		end
+
 		def render(plan, output)
 			@plan = plan
-			@context = PlanContext.new(@plan, 8)
+			@context = PlanContext.new(@plan, option)
 			@output = output
 
 			File.open(output, "w:utf-8") do |output|
@@ -17,6 +21,8 @@ module BTM
 				end
 			end
 		end
+
+		attr_reader :option
 
 		private
 

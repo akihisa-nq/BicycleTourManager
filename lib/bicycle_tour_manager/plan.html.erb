@@ -56,7 +56,7 @@
 			<%= altitude_graph(pc) %>
 
 			<% @context.each_node do |node| %>
-			<% if node.info.hide? %>
+			<% if @context.enable_hide? && node.info.hide? %>
 			<table>
 			<tr>
 				<td style="font-weight : bold; width : 11ex;">---- km</td>

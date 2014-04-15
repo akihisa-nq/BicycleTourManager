@@ -10,5 +10,5 @@ INPUT_DIR = File.dirname(INPUT_FILE)
 
 plan = BTM::PlanStream.read(INPUT_FILE)
 
-renderer = BTM::PlanHtmlRenderer.new
+renderer = BTM::PlanHtmlRenderer.new({})
 renderer.render(plan, "#{INPUT_DIR}/result.html");

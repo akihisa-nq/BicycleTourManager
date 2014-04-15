@@ -2,7 +2,7 @@
 
 module BTM
 	class PlanContext
-		def initialize(plan, per_page)
+		def initialize(plan, option)
 			@plan = plan
 			@node = Point.new(0.0, 0.0)
 			@node.info = NodeInfo.new
@@ -18,7 +18,8 @@ module BTM
 			@res_context = plan.resources.map {|r| ResourceContext.new(r) }
 			@schedule_context = plan.schedule.map {|s| ScheduleContext.new(s) }
 
-			@per_page = per_page
+			@per_page = option[:per_page] || 8
+			@enable_hide = option[:enable_hide].nil? ? true : option[:enable_hide]
 		end
 
 
@@ -128,6 +129,10 @@ module BTM
 				increment(node)
 				block.call(node)
 			end
+		end
+
+		def enable_hide?
+			@enable_hide
 		end
 
 		attr_reader :distance_addition, :pc, :node, :task_queue, :res_context, :schedule_context, :use
