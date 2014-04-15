@@ -9,7 +9,7 @@
 
 		h1
 		{
-			font-size : 8pt;
+			font-size : 10pt;
 			text-align : center;
 			margin-bottom : 0em;
 		}
@@ -25,7 +25,7 @@
 
 		td
 		{
-			font-size : 8pt;
+			font-size : 10pt;
 			padding : 0.1em;
 			border : 1px solid black;
 		}
@@ -45,7 +45,7 @@
 		.comment
 		{
 			clear : both;
-			font-size : 6pt;
+			font-size : 8pt;
 		}
 		</style>
 	</head>
@@ -59,46 +59,46 @@
 			<% if @context.enable_hide? && node.info.hide? %>
 			<table>
 			<tr>
-				<td style="font-weight : bold; width : 11ex;">---- km</td>
+				<td style="font-weight : bold; width : 96px;">---- km</td>
 				<td rowspan="3" style="width : 64px; height:64px;"><div style="display:inline-block;width:64px;height:64px;">&nbsp;</div></td>
 				<td>????</td>
 				<td>????</td>
-				<td style="width : 11ex;">-- km</td>
+				<td style="width : 96px;">-- km</td>
 			</tr>
 			<tr>
-				<td style="width : 11ex;">+ -- km</td>
-				<td colspan="2" style="font-size:7pt"> </td>
-				<td style="font-weight : bold; width : 11ex;">-:-/-:-</td>
+				<td style="width : 96px;">+ -- km</td>
+				<td colspan="2"> </td>
+				<td style="font-weight : bold; width : 96px;">-:-/-:-</td>
 			</tr>
 			<tr>
-				<td style="font-weight : bold; width : 11ex;">-:-/-:-</td>
-				<td colspan="2" style="font-size:7pt"> </td>
-				<td style="width:11ex;"><span style="font-size:7pt;">速</span>--/--</td>
+				<td style="font-weight : bold; width : 96px;">-:-/-:-</td>
+				<td colspan="2"> </td>
+				<td style="width:96px;"><span style="font-size:9pt;">速</span>--/--</td>
 			</tr>
 			</table>
 			<% else %>
 			<table>
 			<tr>
-				<td style="font-weight : bold; width : 11ex;"><%= pc_total_distance %> km</td>
+				<td style="font-weight : bold; width : 96px;"><%= pc_total_distance %> km</td>
 				<td rowspan="3" style="width : 64px; height:64px;"><%= render_node(node) %></td>
 				<td><%= node.info.name %></td>
 				<td><%= node.info.next_relative_dir %> <%= node.info.next_road %></td>
-				<td style="width : 11ex;"><%= total_distance %> km</td>
+				<td style="width : 96px;"><%= total_distance %> km</td>
 			</tr>
 			<tr>
-				<td style="width : 11ex;"><%= node_addition(node) %></td>
-				<td colspan="2" style="font-size:7pt"><%= node.info.other_roads %></td>
-				<td style="font-weight : bold; width : 11ex;"><%= total_elapsed %></td>
+				<td style="width : 96px;"><%= node_addition(node) %></td>
+				<td colspan="2" style="font-size:9pt"><%= node.info.other_roads %></td>
+				<td style="font-weight : bold; width : 96px;"><%= total_elapsed %></td>
 			</tr>
 			<tr>
-				<td style="font-weight : bold; width : 11ex;"><%= pc_total_elapsed %></td>
-				<td colspan="2" style="font-size:7pt"><%= filter(node.info.text) %></td>
-				<td style="width:11ex;"><span style="font-size:7pt;">速</span><%= node.info.target_speed %>/<%= node.info.limit_speed %></td>
+				<td style="font-weight : bold; width : 96px;"><%= pc_total_elapsed %></td>
+				<td colspan="2" style="font-size:9pt"><%= filter(node.info.text) %></td>
+				<td style="width:96px;"><span style="font-size:9pt;">速</span><%= node.info.target_speed %>/<%= node.info.limit_speed %></td>
 			</tr>
 			</table>
 			<% end %>
 
-			<div style="float:left; font-size:3pt; width : 1%;">
+			<div style="float:left; font-size:5pt; width : 1%;">
 				<br />
 				<br />
 				<br />
