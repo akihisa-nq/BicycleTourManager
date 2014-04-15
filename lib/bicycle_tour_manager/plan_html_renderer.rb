@@ -110,13 +110,13 @@ EOF
 EOF
 			end
 	
-			unless node.info.orig.nil?
+			unless node.info.orig.nil? && node.info.orig.downcase != "c"
 				out << <<EOF
 	<img src="#{image_root}/images/orig_#{node.info.orig.downcase}.png" style="position:absolute; left:0px; top:0px;"/>
 EOF
 			end
 	
-			unless node.info.dest.nil?
+			unless node.info.dest.nil? && node.info.dest.downcase != "c"
 				out << <<EOF
 	<img src="#{image_root}/images/dest_#{node.info.dest.downcase}.png" style="position:absolute; left:0px; top:0px;"/>
 EOF
