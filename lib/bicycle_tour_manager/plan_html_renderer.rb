@@ -46,7 +46,7 @@ module BTM
 		end
 
 		def total_elapsed
-			format_time(@context.total_target_time) + "/" + format_time(@context.total_time)
+			format_time(@context.node.time_target) + "/" + format_time(@context.node.time)
 		end
 
 		def node_addition(node)

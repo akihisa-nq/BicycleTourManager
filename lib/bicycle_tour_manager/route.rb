@@ -193,7 +193,7 @@ EOS
 			(self.distance_from_start - pt.distance_from_start).abs
 		end
 
-		attr_accessor :point_geos, :ele, :time, :waypoint_index, :distance_from_start, :min_max, :info
+		attr_accessor :point_geos, :ele, :time, :time_target, :waypoint_index, :distance_from_start, :min_max, :info
 
 		private
 

@@ -8,8 +8,8 @@ module BTM
 			@node.info = NodeInfo.new
 			@pc = PlanRouteContext.new(@node)
 
-			@total_time = plan.start_date
-			@total_target_time = plan.start_date
+			@node.time = plan.start_date
+			@node.time_target = plan.start_date
 
 			@distance_addition = 0.0
 
@@ -26,11 +26,11 @@ module BTM
 			false unless @route.path_list.length - 1 == @page_number
 
 			@res_context.each do |res|
-				res.update(@total_target_time)
+				res.update(@node.time_target)
 			end
 
 			@schedule_context.each do |sch|
-				sch.update(@previous_total_target_time, @total_target_time)
+				sch.update(@previous_total_target_time, @node.time_target)
 				if sch.fired?
 					@task_queue.push(Task.new(sch.schedule))
 
@@ -68,12 +68,12 @@ module BTM
 
 			@use.each do |key, value|
 				check = @res_context.find {|r| r.usable? && r.resource.name == key }
-				check.reserve(@total_target_time, value) if check
+				check.reserve(@node.time_target, value) if check
 			end
 
 			block.call
 
-			@previous_total_target_time = @total_target_time
+			@previous_total_target_time = @node.time_target
 		end
 
 		def pc_total_distance
@@ -130,7 +130,7 @@ module BTM
 			end
 		end
 
-		attr_reader :total_time, :total_target_time, :distance_addition, :pc, :node, :task_queue, :res_context, :schedule_context, :use
+		attr_reader :distance_addition, :pc, :node, :task_queue, :res_context, :schedule_context, :use
 
 		private
 
@@ -138,10 +138,10 @@ module BTM
 			@distance_addition = node.distance_on_path(@node)
 
 			elapsed_time = (@distance_addition / @node.info.limit_speed * 3600).to_i
-			target_elapsed_time = ((@distance_addition / @node.info.limit_speed + node.info.rest_time) * 3600).to_i
+			target_elapsed_time = ((@distance_addition / @node.info.target_speed + node.info.rest_time) * 3600).to_i
 
-			@total_time += elapsed_time
-			@total_target_time += target_elapsed_time
+			node.time = @node.time + elapsed_time
+			node.time_target = @node.time_target + target_elapsed_time
 
 			@pc.increment(elapsed_time, target_elapsed_time)
 
