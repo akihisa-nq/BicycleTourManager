@@ -47,7 +47,7 @@ EOS
 				.to_a
 				.sort_by{|i| self.class.dir_id(i[0]) }
 				.select{|v| v[0] != @orig && v[0] != @dest }
-				.map { |v| relative_dir(@orig, v[0]) + " " + v[1] }
+				.map { |v| NodeInfo.relative_dir(@orig, v[0]) + " " + v[1] }
 				.join(", ")
 		end
 
