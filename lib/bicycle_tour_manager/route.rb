@@ -500,6 +500,25 @@ EOS
 			end
 		end
 
+		def total_elevation
+			elevation = 0.0
+			@routes.each do |route|
+				route.path_list.each do |path|
+					path.check_peak
+
+					prev = nil
+					path.steps.each.with_index do |s, i|
+						if s.min_max == :mark_max
+							elevation += s.ele - prev.ele
+						elsif s.min_max_marked?
+							prev = s
+						end
+					end
+				end
+			end
+			elevation
+		end
+
 		def delete_by_distance(pt, dis)
 			routes.each do |r|
 				r.path_list.each do |p|

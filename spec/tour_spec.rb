@@ -21,6 +21,11 @@ describe Tour do
 		expect(tour.total_distance).to be < 300.0
 	end
 
+	it "returns total elevation" do
+		tour = GpxStream.read(File.join(File.dirname(__FILE__), "track_2.gpx"))
+		expect(tour.total_elevation).to be > 1500.0
+	end
+
 	it "returns zero for no routes" do
 		tour = Tour.new
 		expect(tour.total_distance).to eq(0.0)
