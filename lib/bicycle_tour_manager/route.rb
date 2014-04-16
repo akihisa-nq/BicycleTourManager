@@ -375,6 +375,10 @@ EOS
 			@mark_distance_from_start = flag
 		end
 
+		def elevation_minmax
+			@steps.minmax_by {|s| s.ele }.map {|s| s.ele }
+		end
+
 		attr_accessor :start, :end
 		attr_reader :way_points, :steps, :distance
 
@@ -442,6 +446,10 @@ EOS
 			@path_list.each do |r|
 				r.fetch_elevation(cache_elevation)
 			end
+		end
+
+		def elevation_minmax
+			@path_list.map {|p| p.elevation_minmax }.flatten.minmax
 		end
 
 		attr_reader :path_list
@@ -527,6 +535,10 @@ EOS
 				r.path_list.delete_if {|p| p.steps.count == 0 }
 			end
 			routes.delete_if {|r| r.path_list.count == 0 }
+		end
+
+		def elevation_minmax
+			@routes.map {|r| r.elevation_minmax }.flatten.minmax
 		end
 
 		attr_reader :routes
