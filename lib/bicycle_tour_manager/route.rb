@@ -339,8 +339,8 @@ EOS
 			@steps.delete_if {|p| p.distance(pt) < dis }
 		end
 
-		def check_peak
-			check_distance_from_start
+		def check_peak(offset)
+			check_distance_from_start(offset)
 
 			unless mark_peak?
 				Path.check_peak(@steps)
@@ -351,10 +351,10 @@ EOS
 			@mark_peak
 		end
 
-		def check_distance_from_start
+		def check_distance_from_start(offset)
 			unless mark_distance_from_start?
 				prev = @steps.first
-				dis = 0.0
+				dis = offset
 				@steps.each do |s|
 					dis += prev.distance(s)
 					s.distance_from_start = dis
@@ -452,6 +452,13 @@ EOS
 			@path_list.map {|p| p.elevation_minmax }.flatten.minmax
 		end
 
+		def check_distance_from_start(offset)
+			@path_list.each do |path|
+				path.check_distance_from_start(offset)
+				offset = path.steps.last.check_distance_from_start
+			end
+		end
+
 		attr_reader :path_list
 		attr_accessor :index
 	end
@@ -510,9 +517,12 @@ EOS
 
 		def total_elevation
 			elevation = 0.0
+			offset = 0.0
+
 			@routes.each do |route|
 				route.path_list.each do |path|
-					path.check_peak
+					path.check_peak(offset)
+					offset = path.steps.last.distance_from_start
 
 					prev = nil
 					path.steps.each.with_index do |s, i|
@@ -539,6 +549,14 @@ EOS
 
 		def elevation_minmax
 			@routes.map {|r| r.elevation_minmax }.flatten.minmax
+		end
+
+		def check_distance_from_start
+			offset = 0.0
+			@routes.each do |route|
+				route.check_distance_from_start(offset)
+				offset = route.path_list.last.steps.last.distance_from_start
+			end
 		end
 
 		attr_reader :routes
