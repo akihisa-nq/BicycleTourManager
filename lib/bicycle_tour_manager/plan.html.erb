@@ -2,6 +2,18 @@
 	<head>
         <meta charset="UTF-8" /> 
 		<style>
+		<%
+		very_small = "3pt"
+		small = "7pt"
+		medium = "8pt"
+		large = "9pt"
+
+		dir_size = "48px"
+		dis_size = "64px"
+
+		height = "16px"
+		%>
+
 		@page
 		{		
 			size : 210mm 148mm;
@@ -9,7 +21,7 @@
 
 		h1
 		{
-			font-size : 10pt;
+			font-size : <%= large %>;
 			text-align : center;
 			margin-bottom : 0em;
 		}
@@ -25,9 +37,10 @@
 
 		td
 		{
-			font-size : 10pt;
+			font-size : <%= medium %>;
 			padding : 0.1em;
 			border : 1px solid black;
+			height : <%= height %>;
 		}
 
 		.page
@@ -42,10 +55,101 @@
 			page-break-after : auto;
 		}
 
-		.comment
+		.resource
 		{
 			clear : both;
-			font-size : 8pt;
+			font-size : <%= small %>;
+		}
+
+		.next
+		{
+			float : left;
+			font-size : <%= very_small %>;
+			width : 1%;
+		}
+
+		.pc_distance
+		{
+			font-weight : bold;
+			width : <%= dis_size %>;
+		}
+
+		.direction
+		{
+			width : <%= dir_size %>;
+			height : <%= dir_size %>;
+		}
+
+		.empty_direction
+		{
+			display : inline-block;
+			width : <%= dir_size %>;
+			height : <%= dir_size %>;
+		}
+
+		.direction_box
+		{
+			position : relative;
+			float : left;
+			width : <%= dir_size %>;
+			height : <%= dir_size %>;
+		}
+
+		.direction_box img
+		{
+			position : absolute;
+			left : 0px;
+			top : 0px;
+			width : <%= dir_size %>;
+			height : <%= dir_size %>;
+		}
+
+		.total_direction
+		{
+			width : <%= dis_size %>;
+		}
+
+		.other_directions
+		{
+			font-size : <%= medium %>;
+		}
+
+		.total_elapsed
+		{
+			font-weight : bold;
+			width : <%= dis_size %>;
+		}
+
+		.pc_elapsed
+		{
+			font-weight : bold;
+			width : <%= dis_size %>;
+		}
+
+		.comment
+		{
+			font-size : <%= medium %>;
+		}
+
+		.speed_label
+		{
+			font-size : <%= medium %>;
+		}
+
+		.alert
+		{
+			font-weight : bold;
+		}
+
+		.altitude
+		{
+			text-align : center;
+		}
+
+		.altitude img
+		{
+			width : 100%;
+			height : auto;
 		}
 		</style>
 	</head>
@@ -59,46 +163,46 @@
 			<% if @context.enable_hide? && node.info.hide? %>
 			<table>
 			<tr>
-				<td style="font-weight : bold; width : 96px;">---- km</td>
-				<td rowspan="3" style="width : 64px; height:64px;"><div style="display:inline-block;width:64px;height:64px;">&nbsp;</div></td>
-				<td>????</td>
-				<td>????</td>
-				<td style="width : 96px;">-- km</td>
+				<td class="pc_distance">---- km</td>
+				<td rowspan="3" class="direction"><div class="empty_direction">&nbsp;</div></td>
+				<td class="node_name">????</td>
+				<td class="next_direction">????</td>
+				<td class="total_distance">-- km</td>
 			</tr>
 			<tr>
-				<td style="width : 96px;">+ -- km</td>
-				<td colspan="2"> </td>
-				<td style="font-weight : bold; width : 96px;">-:-/-:-</td>
+				<td class="distance_addition">+ -- km</td>
+				<td colspan="2" class="other_directions"> </td>
+				<td class="total_elapsed">-:-/-:-</td>
 			</tr>
 			<tr>
-				<td style="font-weight : bold; width : 96px;">-:-/-:-</td>
-				<td colspan="2"> </td>
-				<td style="width:96px;"><span style="font-size:9pt;">速</span>--/--</td>
+				<td class="pc_elapsed">-:-/-:-</td>
+				<td colspan="2" class="comment"> </td>
+				<td class="speed"><span class="speed_label">速</span>--/--</td>
 			</tr>
 			</table>
 			<% else %>
 			<table>
 			<tr>
-				<td style="font-weight : bold; width : 96px;"><%= pc_total_distance %> km</td>
-				<td rowspan="3" style="width : 64px; height:64px;"><%= render_node(node) %></td>
-				<td><%= node.info.name %></td>
-				<td><%= node.info.next_relative_dir %> <%= node.info.next_road %></td>
-				<td style="width : 96px;"><%= total_distance %> km</td>
+				<td class="pc_distance"><%= pc_total_distance %> km</td>
+				<td rowspan="3" class="direction"><%= render_node(node) %></td>
+				<td class="node_name"><%= node.info.name %></td>
+				<td class="next_direction"><%= node.info.next_relative_dir %> <%= node.info.next_road %></td>
+				<td class="total_distance"><%= total_distance %> km</td>
 			</tr>
 			<tr>
-				<td style="width : 96px;"><%= node_addition(node) %></td>
-				<td colspan="2" style="font-size:9pt"><%= node.info.other_roads %></td>
-				<td style="font-weight : bold; width : 96px;"><%= total_elapsed %></td>
+				<td class="distance_addition"><%= node_addition(node) %></td>
+				<td colspan="2" class="other_directions"><%= node.info.other_roads %></td>
+				<td class="total_elapsed"><%= total_elapsed %></td>
 			</tr>
 			<tr>
-				<td style="font-weight : bold; width : 96px;"><%= pc_total_elapsed %></td>
-				<td colspan="2" style="font-size:9pt"><%= filter(node.info.text) %></td>
-				<td style="width:96px;"><span style="font-size:9pt;">速</span><%= node.info.target_speed %>/<%= node.info.limit_speed %></td>
+				<td class="pc_elapsed"><%= pc_total_elapsed %></td>
+				<td colspan="2" class="comment"><%= filter(node.info.text) %></td>
+				<td class="speed"><span class="speed_label">速</span><%= node.info.target_speed %>/<%= node.info.limit_speed %></td>
 			</tr>
 			</table>
 			<% end %>
 
-			<div style="float:left; font-size:5pt; width : 1%;">
+			<div class="next">
 				<br />
 				<br />
 				<br />
@@ -110,7 +214,7 @@
 			<% end  %>
 
 			<% @context.update_resource_status do %>
-			<div class="comment">
+			<div class="resource">
 				<% @context.res_context.each do |r| %>
 				<%= resource_status(r) %>
 				<% end %>

@@ -30,8 +30,8 @@ module BTM
 			pc_alt_image = File.absolute_path(File.join(File.dirname(@output), "PC#{route.index}.png"))
 			if File.exist?(pc_alt_image)
 				<<-EOS
-<div style="text-align:center">
-	<img src="file:///#{pc_alt_image.gsub("\\", "/")}" style="width:100%" />
+<div class="altitude">
+	<img src="file:///#{pc_alt_image.gsub("\\", "/")}" />
 </div>
 				EOS
 			else
@@ -107,24 +107,24 @@ module BTM
 			out = ""
 	
 			out << <<EOF
-	<div style="position:relative; float : left; width : 64px; height : 64px;">
+	<div class="direction_box">
 EOF
 	
 			node.info.road.keys.each do |i|
 				out << <<EOF
-	<img src="#{image_root}/images/normal_#{i.downcase}.png" style="position:absolute; left:0px; top:0px;"/>
+	<img src="#{image_root}/images/normal_#{i.downcase}.png" />
 EOF
 			end
 	
 			if ! node.info.orig.nil? && node.info.orig.downcase != "c"
 				out << <<EOF
-	<img src="#{image_root}/images/orig_#{node.info.orig.downcase}.png" style="position:absolute; left:0px; top:0px;"/>
+	<img src="#{image_root}/images/orig_#{node.info.orig.downcase}.png" />
 EOF
 			end
 	
 			if ! node.info.dest.nil? && node.info.dest.downcase != "c"
 				out << <<EOF
-	<img src="#{image_root}/images/dest_#{node.info.dest.downcase}.png" style="position:absolute; left:0px; top:0px;"/>
+	<img src="#{image_root}/images/dest_#{node.info.dest.downcase}.png" />
 EOF
 			end
 	
@@ -141,9 +141,9 @@ EOF
 
 		def filter text
 			text
-				.gsub(/(.(分岐路|岐路|字路))/) { %Q+<span style="font-weight:bold">#{$1}</span>+ }
-				.gsub(/(左折|右折|直進)/) { %Q+<span style="font-weight:bold">#{$1}</span>+ }
-				.gsub(/(([A-Z]+)?R[\d\/]+)/) { %Q+<span style="font-weight:bold">#{$1}</span>+ }
+				.gsub(/(.(分岐路|岐路|字路))/) { %Q+<span class="alert">#{$1}</span>+ }
+				.gsub(/(左折|右折|直進)/) { %Q+<span class="alert">#{$1}</span>+ }
+				.gsub(/(([A-Z]+)?R[\d\/]+)/) { %Q+<span class="alert">#{$1}</span>+ }
 		end
 	end
 end

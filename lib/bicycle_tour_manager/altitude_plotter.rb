@@ -20,7 +20,7 @@ module BTM
 			@font = nil
 			@elevation_max = 1100
 			@elevation_min = -100
-			@distance_max = 120
+			@distance_max = 150
 			@scale = 1.0
 		end
 

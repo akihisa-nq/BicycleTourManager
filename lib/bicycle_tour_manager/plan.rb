@@ -18,7 +18,7 @@ module BTM
 			@res_context = plan.resources.map {|r| ResourceContext.new(r) }
 			@schedule_context = plan.schedule.map {|s| ScheduleContext.new(s) }
 
-			@per_page = option[:per_page] || 8
+			@per_page = option[:per_page] || 12
 			@enable_hide = option[:enable_hide].nil? ? true : option[:enable_hide]
 		end
 
