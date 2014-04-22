@@ -416,7 +416,7 @@ EOS
 
 		def flatten
 			tmp = @path_list.map.with_index do |r, i|
-				steps = r.steps[0..-2]
+				steps = r.steps[0..-2].map {|s| s.dup }
 				steps[0].waypoint_index = i + 1
 				steps
 			end
