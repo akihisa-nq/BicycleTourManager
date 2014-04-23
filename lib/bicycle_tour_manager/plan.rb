@@ -2,8 +2,11 @@
 
 module BTM
 	class PlanContext
-		def initialize(plan, option)
+		def initialize(plan, plotter, work_dir, option)
 			@plan = plan
+			@plotter = plotter
+			@work_dir = work_dir
+
 			@node = Point.new(0.0, 0.0)
 			@node.info = NodeInfo.new
 			@pc = PlanRouteContext.new(@node)
@@ -18,7 +21,7 @@ module BTM
 			@res_context = plan.resources.map {|r| ResourceContext.new(r) }
 			@schedule_context = plan.schedule.map {|s| ScheduleContext.new(s) }
 
-			@per_page = option[:per_page] || 12
+			@per_page = option[:per_page] || (option[:format] == :half ? 7 : 12)
 			@enable_hide = option[:enable_hide].nil? ? true : option[:enable_hide]
 		end
 
@@ -85,7 +88,7 @@ module BTM
 				@route = route
 				@pc.reset(@node)
 				page_max = 0
-				page_number = 0
+				@page_number = 0
 
 				count = 0
 				@route.path_list.each do |page|
@@ -102,23 +105,34 @@ module BTM
 				end
 				page_max += 1 if count > 0
 
+				@graph_route = Route.new
 				@page_node = []
 				@route.path_list.each do |page|
+					@graph_route.path_list << Path.new
+
 					page.steps.each do |node|
+						@graph_route.path_list.last.steps << node
+
 						if node.info
 							@page_node << node
 
 							if node.info.page_break? || @page_node.length >= @per_page
-								block.call(@route, page_number, page_max)
+								plot_graph
+								block.call(@route, @page_number, page_max)
+
 								@page_node.clear
-								page_number += 1
+								@graph_route = Route.new
+								@page_number += 1
 							end
 						end
 					end
 				end
 
 				if @page_node.length > 0
-					block.call(@route, page_number, page_max)
+					plot_graph
+					block.call(@route, @page_number, page_max)
+					@page_node.clear
+					@graph_route = nil
 				end
 			end
 		end
@@ -134,9 +148,23 @@ module BTM
 			@enable_hide
 		end
 
-		attr_reader :distance_addition, :pc, :node, :task_queue, :res_context, :schedule_context, :use
+		attr_reader :distance_addition, :pc, :route, :node, :task_queue, :res_context, :schedule_context, :use, :page_number
 
 		private
+
+		def plot_graph
+			if @plotter
+				min, max = *@graph_route.elevation_minmax
+				min ||= 0
+				max ||= 1000
+
+				plotter.elevation_min = (min / 100) * 100 - 100
+				plotter.elevation_max = [plotter.elevation_min + 1100, ((max - 1) / 100 + 1) * 100].max + 100
+
+				path = File.join(@work_dir, "PC#{@route.index}_#{@page_number}.png")
+				@plotter.plot(@graph_route, path)
+			end
+		end
 
 		def increment(node)
 			@distance_addition = node.distance_on_path(@node)

@@ -4,14 +4,16 @@ require "erb"
 
 module BTM
 	class PlanHtmlRenderer
-		def initialize(option)
+		def initialize(plotter, option)
+			@plotter = plotter
 			@option = option
 		end
 
 		def render(plan, output)
 			@plan = plan
-			@context = PlanContext.new(@plan, option)
 			@output = output
+
+			@context = PlanContext.new(@plan, @plotter, work_dir, option)
 
 			File.open(output, "w:utf-8") do |output|
 				File.open(File.join(File.dirname(__FILE__), "plan.html.erb"), "r:utf-8") do |file|
@@ -26,13 +28,25 @@ module BTM
 
 		private
 
+		def work_dir
+			File.dirname(@output)
+		end
+
+		def half?
+			@option[:format] == :half
+		end
+
 		def scaled(px)
 			scale = @option[:scale] || 1.0
 			"#{(scale * px).to_i}px"
 		end
 
-		def altitude_graph(route)
-			pc_alt_image = File.absolute_path(File.join(File.dirname(@output), "PC#{route.index}.png"))
+		def altitude_graph
+			pc_alt_image = File.absolute_path(File.join(work_dir, "PC#{@context.route.index}.png"))
+			unless File.exist?(pc_alt_image)
+				pc_alt_image = File.absolute_path(File.join(work_dir, "PC#{@context.route.index}_#{@context.page_number}.png"))
+			end
+
 			if File.exist?(pc_alt_image)
 				<<-EOS
 <div class="altitude">

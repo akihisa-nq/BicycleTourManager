@@ -14,11 +14,6 @@
 		height = scaled(16)
 		%>
 
-		@page
-		{		
-			size : 210mm 148mm;
-		}
-
 		h1
 		{
 			font-size : <%= large %>;
@@ -27,8 +22,8 @@
 		}
 
 		table
-		{
-			width : 48%;
+		{	
+			width : <% if half? %>100%<% else %>48%<% end %>;
 			border : 1px solid black;
 			border-collapse : collapse;
 			margin-bottom : 1%;
@@ -157,7 +152,7 @@
 		<% @context.each_page do |pc, i, page_max| %>
 		<div class="page">
 			<h1>PC<%= pc.index %> <%= i + 1 %>/<%= page_max %></h1>
-			<%= altitude_graph(pc) %>
+			<%= altitude_graph %>
 
 			<% @context.each_node do |node| %>
 			<% if @context.enable_hide? && node.info.hide? %>
@@ -201,7 +196,7 @@
 			</tr>
 			</table>
 			<% end %>
-
+			<% unless half? %>
 			<div class="next">
 				<br />
 				<br />
@@ -211,6 +206,7 @@
 				<br />
 				<br />
 			</div>
+			<% end %>
 			<% end  %>
 
 			<% @context.update_resource_status do %>

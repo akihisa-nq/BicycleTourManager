@@ -22,6 +22,7 @@ module BTM
 			@elevation_min = -100
 			@distance_max = 150
 			@scale = 1.0
+			@label = true
 		end
 
 		def plot(route, outfile)
@@ -123,8 +124,12 @@ module BTM
 				pipe << "show mytics\n"
 				pipe << "set xrange [0:#{max_dis}]\n"
 				pipe << "set yrange [#{min_ele}:#{max_ele}]\n"
-				pipe << "set xlabel 'distance, km'\n"
-				pipe << "set ylabel 'elevation, m'\n"
+
+				if @label
+					pipe << "set xlabel 'distance, km'\n"
+					pipe << "set ylabel 'elevation, m'\n"
+				end
+
 				pipe << "set terminal png size #{image_x},#{image_y}\n"
 
 				if @font
@@ -149,7 +154,7 @@ module BTM
 			tmp_files.each {|f| File.delete(f) }
 		end
 
-		attr_accessor :elevation_max, :elevation_min, :distance_max, :scale, :font
+		attr_accessor :elevation_max, :elevation_min, :distance_max, :scale, :font, :label
 
 		private
 
