@@ -158,8 +158,8 @@ module BTM
 				min ||= 0
 				max ||= 1000
 
-				plotter.elevation_min = (min / 100) * 100 - 100
-				plotter.elevation_max = [plotter.elevation_min + 1100, ((max - 1) / 100 + 1) * 100].max + 100
+				@plotter.elevation_min = (min / 100) * 100 - 100
+				@plotter.elevation_max = [@plotter.elevation_min + 1100, ((max - 1) / 100 + 1) * 100].max + 100
 
 				path = File.join(@work_dir, "PC#{@route.index}_#{@page_number}.png")
 				@plotter.plot(@graph_route, path)
