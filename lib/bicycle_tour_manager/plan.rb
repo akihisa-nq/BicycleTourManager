@@ -126,6 +126,10 @@ module BTM
 							end
 						end
 					end
+
+					if @graph_route.path_list.last.steps.count == 0
+						@graph_route.path_list.delete_at(-1)
+					end
 				end
 
 				if @page_node.length > 0
