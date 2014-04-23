@@ -108,6 +108,8 @@ module BTM
 				@graph_route = Route.new
 				@page_node = []
 				@route.path_list.each do |page|
+					next if page.steps.count == 0
+
 					@graph_route.path_list << Path.new
 
 					page.steps.each do |node|
@@ -121,14 +123,11 @@ module BTM
 								block.call(@route, @page_number, page_max)
 
 								@page_node.clear
-								@graph_route = Route.new
+								@graph_route.path_list.clear
+								@graph_route.path_list << node
 								@page_number += 1
 							end
 						end
-					end
-
-					if @graph_route.path_list.last.steps.count == 0
-						@graph_route.path_list.delete_at(-1)
 					end
 				end
 
