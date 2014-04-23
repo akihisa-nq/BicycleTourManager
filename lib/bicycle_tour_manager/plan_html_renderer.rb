@@ -26,6 +26,11 @@ module BTM
 
 		private
 
+		def scaled(px)
+			scale = @option[:scale] || 1.0
+			"#{(scale * px).to_i}px"
+		end
+
 		def altitude_graph(route)
 			pc_alt_image = File.absolute_path(File.join(File.dirname(@output), "PC#{route.index}.png"))
 			if File.exist?(pc_alt_image)
