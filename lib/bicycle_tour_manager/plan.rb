@@ -22,7 +22,6 @@ module BTM
 			@enable_hide = option[:enable_hide].nil? ? true : option[:enable_hide]
 		end
 
-
 		def update_resource_status(&block)
 			false unless @route.path_list.length - 1 == @page_number
 

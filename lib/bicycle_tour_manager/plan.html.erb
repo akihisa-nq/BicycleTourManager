@@ -184,19 +184,19 @@
 			<table>
 			<tr>
 				<td class="pc_distance"><%= pc_total_distance %> km</td>
-				<td rowspan="3" class="direction"><%= render_node(node) %></td>
+				<td rowspan="3" class="direction"><%= render_node %></td>
 				<td class="node_name"><%= node.info.name %></td>
 				<td class="next_direction"><%= node.info.next_relative_dir %> <%= node.info.next_road %></td>
 				<td class="total_distance"><%= total_distance %> km</td>
 			</tr>
 			<tr>
-				<td class="distance_addition"><%= node_addition(node) %></td>
+				<td class="distance_addition"><%= node_distance_addition %></td>
 				<td colspan="2" class="other_directions"><%= node.info.other_roads %></td>
 				<td class="total_elapsed"><%= total_elapsed %></td>
 			</tr>
 			<tr>
 				<td class="pc_elapsed"><%= pc_total_elapsed %></td>
-				<td colspan="2" class="comment"><%= filter(node.info.text) %></td>
+				<td colspan="2" class="comment"><%= comment %></td>
 				<td class="speed"><span class="speed_label">速</span><%= node.info.target_speed %>/<%= node.info.limit_speed %></td>
 			</tr>
 			</table>

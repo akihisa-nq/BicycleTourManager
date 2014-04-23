@@ -60,10 +60,6 @@ module BTM
 			format_time(@context.node.time_target) + "/" + format_time(@context.node.time)
 		end
 
-		def node_addition(node)
-			node_distance_addition + node_time_addition(node)
-		end
-
 		def node_distance_addition
 			if @context.distance_addition > 0.0
 				"+ %.1f km" % [ @context.distance_addition ]
@@ -72,12 +68,16 @@ module BTM
 			end
 		end
 
-		def node_time_addition(node)
-			if node.info.rest_time > 0.0
-				"+ %02d:%02d" % [node.info.rest_time.to_i, (node.info.rest_time % 1.0) * 60]
+		def node_time_addition
+			if @context.node.info.rest_time > 0.0
+				"(%02d:%02d 休み)" % [@context.node.info.rest_time.to_i, (@context.node.info.rest_time % 1.0) * 60]
 			else
 				""
 			end
+		end
+
+		def comment
+			filter(@context.node.info.text) + node_time_addition
 		end
 
 		def format_time(time)
@@ -108,7 +108,9 @@ module BTM
 			end
 		end
 
-		def render_node(node)
+		def render_node
+			node = @context.node
+
 			out = ""
 	
 			out << <<EOF
