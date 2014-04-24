@@ -106,6 +106,8 @@ module BTM
 				page_max += 1 if count > 0
 
 				@graph_route = Route.new
+				@graph_waypoint_offset = 0
+
 				@page_node = []
 				@route.path_list.each do |page|
 					next if page.steps.count == 0
@@ -113,8 +115,6 @@ module BTM
 					@graph_route.path_list << Path.new
 
 					page.steps.each do |node|
-						@graph_route.path_list.last.steps << node
-
 						if node.info
 							@page_node << node
 
@@ -124,9 +124,12 @@ module BTM
 
 								@page_node.clear
 								@graph_route.path_list.clear
-								@graph_route.path_list << node
+								@graph_route.path_list << Path.new
+								@graph_route.path_list.last.steps << node
 								@page_number += 1
 							end
+						else
+							@graph_route.path_list.last.steps << node
 						end
 					end
 				end
@@ -157,15 +160,23 @@ module BTM
 
 		def plot_graph
 			if @plotter
+				if @graph_route.path_list.last.steps.count == 0
+					@graph_route.path_list.delete_at(-1)
+				end
+
 				min, max = *@graph_route.elevation_minmax
 				min ||= 0
 				max ||= 1000
 
 				@plotter.elevation_min = (min / 100) * 100 - 100
 				@plotter.elevation_max = [@plotter.elevation_min + 1100, ((max - 1) / 100 + 1) * 100].max + 100
+				@plotter.distance_offset = @graph_route.path_list[0].steps[0].distance_from_start
+				@plotter.waypoint_offset = @graph_waypoint_offset
 
 				path = File.join(@work_dir, "PC#{@route.index}_#{@page_number}.png")
 				@plotter.plot(@graph_route, path)
+
+				@graph_waypoint_offset += @page_node.count - 1
 			end
 		end
 
@@ -278,4 +289,5 @@ module BTM
 		attr_accessor :amount
 	end
 end
+
 

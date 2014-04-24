@@ -23,6 +23,8 @@ module BTM
 			@distance_max = 150
 			@scale = 1.0
 			@label = true
+			@distance_offset = 0.0
+			@waypoint_offset = 0
 		end
 
 		def plot(route, outfile)
@@ -33,6 +35,9 @@ module BTM
 
 			# フラット化
 			tmp = route.flatten
+			tmp.each do |s|
+				s.distance_from_start += @distance_offset
+			end
 
 			# ピークをマーク
 			Path.check_peak(tmp)
@@ -55,7 +60,7 @@ module BTM
 						  || pt.distance_from_start - prev_waypoint.distance_from_start >= 2.5 \
 						  || (pt.ele - prev_waypoint.ele).abs >= 100.0
 						then
-							waypoint << "#{pt.distance_from_start} #{pt.ele} ★#{pt.waypoint_index}\\n\n"
+							waypoint << "#{pt.distance_from_start} #{pt.ele} ★#{@waypoint_offset + pt.waypoint_index}\\n\n"
 							prev_waypoint = pt
 						end
 					end
@@ -106,12 +111,15 @@ module BTM
 				image_base_x = 1200
 				image_base_y = 300
 
-				max_dis = @distance_max
+				min_dis = (@distance_offset / 2.5).to_i.to_f * 2.5
+				max_dis = min_dis + @distance_max.to_f
+				dis_range = @distance_max
+
 				max_ele = @elevation_max
 				min_ele = @elevation_min
 				ele_range = max_ele - min_ele
 
-				image_x = (image_base_x.to_f * max_dis.to_f / base_dis.to_f * @scale).to_i
+				image_x = (image_base_x.to_f * dis_range.to_f / base_dis.to_f * @scale).to_i
 				image_y = (image_base_y.to_f * ele_range.to_f / base_ele.to_f * @scale).to_i
 
 				pipe << "unset key\n"
@@ -120,9 +128,7 @@ module BTM
 				pipe << "set ytics 100\n"
 				pipe << "set mxtics 2\n"
 				pipe << "set mytics 2\n"
-				pipe << "show mxtics\n"
-				pipe << "show mytics\n"
-				pipe << "set xrange [0:#{max_dis}]\n"
+				pipe << "set xrange [#{min_dis}:#{max_dis}]\n"
 				pipe << "set yrange [#{min_ele}:#{max_ele}]\n"
 
 				if @label
@@ -154,7 +160,7 @@ module BTM
 			tmp_files.each {|f| File.delete(f) }
 		end
 
-		attr_accessor :elevation_max, :elevation_min, :distance_max, :scale, :font, :label
+		attr_accessor :elevation_max, :elevation_min, :distance_offset, :distance_max, :waypoint_offset, :scale, :font, :label
 
 		private
 
@@ -223,3 +229,4 @@ module BTM
 		end
 	end
 end
+
