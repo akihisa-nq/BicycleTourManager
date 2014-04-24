@@ -145,14 +145,14 @@ module BTM
 
 				margins = {}
 				if @label
-					margins = {
+					margins = @margins_with_label || {
 						t: 1,
 						b: 3,
 						l: 10,
 						r: 2,
 					}
 				else
-					margins = {
+					margins = @margins_without_label || {
 						t: 1,
 						b: 2,
 						l: 6,
@@ -205,7 +205,8 @@ module BTM
 			tmp_files.each {|f| File.delete(f) }
 		end
 
-		attr_accessor :elevation_max, :elevation_min, :distance_offset, :distance_max, :waypoint_offset, :scale, :font, :label
+		attr_accessor :elevation_max, :elevation_min, :distance_offset, :distance_max, :waypoint_offset, :scale, :font, :label,
+			:margins_with_label, :margins_without_label
 
 		private
 
