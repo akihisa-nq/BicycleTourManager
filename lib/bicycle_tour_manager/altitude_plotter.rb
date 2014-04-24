@@ -105,6 +105,25 @@ module BTM
 			Open3.popen3( "\"#{@gnuplot}\" -persist" ) do |pipe, unused1, unused2, thread|
 				unused1.close
 				unused2.close
+				pipe << "set terminal png size 300,300 crop\n"
+				if @font
+					pipe << "set terminal png font '#{@font}'\n"
+				end
+				pipe << "set lmargin 0\n"
+				pipe << "set rmargin 3\n"
+				pipe << "set tmargin 3\n"
+				pipe << "set bmargin 0\n"
+				pipe << "set output '#{outfile}';\n"
+				pipe << "plot x\n"
+				pipe << "exit\n"
+			end
+
+			margin_unit = `identify -format "%w %h" #{outfile}`.split.map {|i| (300 - i.to_i) / 3 }
+			File.delete(outfile)
+
+			Open3.popen3( "\"#{@gnuplot}\" -persist" ) do |pipe, unused1, unused2, thread|
+				unused1.close
+				unused2.close
 
 				base_dis = 120
 				base_ele = 1200
@@ -122,6 +141,28 @@ module BTM
 				image_x = (image_base_x.to_f * dis_range.to_f / base_dis.to_f * @scale).to_i
 				image_y = (image_base_y.to_f * ele_range.to_f / base_ele.to_f * @scale).to_i
 
+				@label = nil
+
+				margins = {}
+				if @label
+					margins = {
+						t: 1,
+						b: 3,
+						l: 10,
+						r: 2,
+					}
+				else
+					margins = {
+						t: 1,
+						b: 2,
+						l: 6,
+						r: 2,
+					}
+				end
+
+				image_x += (margins[:l] + margins[:r]) * margin_unit[0]
+				image_y += (margins[:t] + margins[:b]) * margin_unit[1]
+
 				pipe << "unset key\n"
 				pipe << "set grid xtics mxtics ytics\n"
 				pipe << "set xtics 5\n"
@@ -131,12 +172,16 @@ module BTM
 				pipe << "set xrange [#{min_dis}:#{max_dis}]\n"
 				pipe << "set yrange [#{min_ele}:#{max_ele}]\n"
 
+				margins.each do |key, value|
+					pipe << "set #{key}margin #{value}\n"
+				end
+	
 				if @label
 					pipe << "set xlabel 'distance, km'\n"
 					pipe << "set ylabel 'elevation, m'\n"
 				end
 
-				pipe << "set terminal png size #{image_x},#{image_y}\n"
+				pipe << "set terminal png size #{image_x},#{image_y} nocrop\n"
 
 				if @font
 					pipe << "set terminal png font '#{@font}'\n"
