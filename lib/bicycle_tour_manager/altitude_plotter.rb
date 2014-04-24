@@ -141,8 +141,6 @@ module BTM
 				image_x = (image_base_x.to_f * dis_range.to_f / base_dis.to_f * @scale).to_i
 				image_y = (image_base_y.to_f * ele_range.to_f / base_ele.to_f * @scale).to_i
 
-				@label = nil
-
 				margins = {}
 				if @label
 					margins = @margins_with_label || {
