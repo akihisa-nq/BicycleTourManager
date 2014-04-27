@@ -9,6 +9,7 @@ spec/route.gpx
 spec/route_template.txt
 spec/track_new.gpx
 spec/result.html
+spec/result.pdf
 
 *.gem
 *.rspec
