@@ -9,7 +9,6 @@ module BTM
 		PEAK_LIMIT_DISTANCE_LONG = 5.0
 		PEAK_LIMIT_GRADIENT_LONG = 2.0
 
-		GRAD_LIMIT_SPLIT_ELEVATION = 37.5
 		GRAD_LIMIT_GRADIENT = PEAK_LIMIT_GRADIENT.to_i
 		GRAD_LIMIT_DISTANCE_LONG = 5.0
 		GRAD_LIMIT_GRADIENT_LONG = 2.0
@@ -43,7 +42,7 @@ module BTM
 			Path.check_peak(tmp)
 
 			# 傾斜を計算
-			grads = check_gradient(tmp)
+			grads = Path.check_gradient(tmp)
 
 			File.open(graph_data, "w") do |graph|
 			File.open(waypoint_data, "w") do |waypoint|
@@ -86,18 +85,18 @@ module BTM
 			File.open(gradient_data, "w") do |grad|
 			File.open(gradient_label_data, "w") do |grad_label|
 				grads.each do |e|
-					diff_dis = e[:end].distance_from_start - e[:start].distance_from_start
+					diff_dis = e.end.distance_from_start - e.start.distance_from_start
 
-					if e[:grad] >= GRAD_LIMIT_GRADIENT \
-						|| (e[:grad] >= GRAD_LIMIT_GRADIENT_LONG && diff_dis >= GRAD_LIMIT_DISTANCE_LONG)
+					if e.grad >= GRAD_LIMIT_GRADIENT \
+						|| (e.grad >= GRAD_LIMIT_GRADIENT_LONG && diff_dis >= GRAD_LIMIT_DISTANCE_LONG)
 					then
-						grad << "#{e[:start].distance_from_start} #{e[:start].ele} -50 #{e[:start].distance_from_start.round}\\n+#{diff_dis.round}\n"
-						grad << "#{e[:end].distance_from_start} #{e[:end].ele}\n"
+						grad << "#{e.start.distance_from_start} #{e.start.ele} -50 #{e.start.distance_from_start.round}\\n+#{diff_dis.round}\n"
+						grad << "#{e.end.distance_from_start} #{e.end.ele}\n"
 						grad << "\n"
 
-						dis = (e[:start].distance_from_start + e[:end].distance_from_start) / 2
-						ele = (e[:start].ele + e[:end].ele) / 2
-						grad_label << "#{dis} #{ele} #{e[:grad]}%\n"
+						dis = (e.start.distance_from_start + e.end.distance_from_start) / 2
+						ele = (e.start.ele + e.end.ele) / 2
+						grad_label << "#{dis} #{ele} #{e.grad}%\n"
 					end
 				end
 			end; end
@@ -205,72 +204,6 @@ module BTM
 
 		attr_accessor :elevation_max, :elevation_min, :distance_offset, :distance_max, :waypoint_offset, :scale, :font, :label,
 			:margins_with_label, :margins_without_label
-
-		private
-
-		def check_gradient(tmp)
-			result = []
-
-			calc = lambda do |i, j|
-				diff_dis = tmp[j].distance_from_start - tmp[i].distance_from_start
-				break [] if diff_dis == 0.0
-
-				a = (tmp[j].ele - tmp[i].ele) / diff_dis
-				b = tmp[i].ele - a * tmp[i].distance_from_start
-
-				if tmp[j].distance_from_start - tmp[i].distance_from_start > 1.0
-					data = 0
-					index = 0
-
-					((i+1)..(j-1)).each do |k|
-						ele_calc = a * tmp[k].distance_from_start + b
-						d = (tmp[k].ele - ele_calc).abs
-
-						if d >= data
-							data = d
-							index = k
-						end
-					end
-
-					if data >= GRAD_LIMIT_SPLIT_ELEVATION
-						break calc.call(i, index) + calc.call(index, j)
-					end
-				end
-
-				break [{
-					:start => tmp[i],
-					:end => tmp[j],
-					:grad => (a / 10.0).to_i
-				}]
-			end
-
-			prev = 0
-			tmp.each.with_index do |e, i|
-				unless e.min_max.nil?
-					if e.min_max == :mark_max
-						ret = calc.call(prev, i)
-						next if ret.size == 0
-
-						current = 0
-						while current + 1 < ret.size
-							if ret[current][:grad] == ret[current + 1][:grad]
-								ret[current][:start] = ret[current][:start]
-								ret[current][:end] = ret[current + 1][:end]
-								ret.delete_at(current + 1)
-							else
-								current += 1
-							end
-						end
-
-						result += ret
-					else
-						prev = i
-					end
-				end
-			end
-
-			result
-		end
 	end
 end
 

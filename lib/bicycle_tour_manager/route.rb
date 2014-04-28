@@ -230,42 +230,43 @@ EOS
 			prev = 0
 			prev_min = 0
 			(1..tmp.length-2).each do |i|
+				current = tmp[i]
+
 				check_min = true
 				check_max = true
 
 				# 最小値チェック
-				prev_min = i if tmp[prev_min].ele > tmp[i].ele
+				prev_min = i if tmp[prev_min].ele > current.ele
 
 				# 以前の点
-				j = i - 1
-				while j >= 0 && (check_min || check_max) && tmp[i].distance_on_path(tmp[j]) < PEAK_SEARCH_DISTANCE
-					check_min = false if tmp[j].ele <= tmp[i].ele
-					check_max = false if tmp[j].ele >= tmp[i].ele
-					j -= 1
+				tmp[0..(i - 1)].reverse.each do |t|
+					# 同じ高度があった場合は、後の点を優先する
+					check_min = false if t.ele < current.ele
+					check_max = false if t.ele > current.ele
+					break unless (check_min || check_max) && current.distance_on_path(t) < PEAK_SEARCH_DISTANCE
 				end
 				next unless check_min || check_max
 
 				# 以後の点
-				j = i + 1
-				while j < tmp.length && (check_min || check_max) && tmp[i].distance_on_path(tmp[j]) < PEAK_SEARCH_DISTANCE
-					check_min = false if tmp[j].ele <= tmp[i].ele
-					check_max = false if tmp[j].ele >= tmp[i].ele
-					j += 1
+				tmp[(i+1)..(tmp.length - 1)].each do |t|
+					check_min = false if t.ele <= current.ele
+					check_max = false if t.ele >= current.ele
+					break unless (check_min || check_max) && current.distance_on_path(t) < PEAK_SEARCH_DISTANCE
 				end
 				next unless check_min || check_max
 
 				# マークする
 				if check_min
 					if tmp[prev].min_max == :mark_min
-						if tmp[prev].ele < tmp[i].ele
+						if tmp[prev].ele < current.ele
 							# マーク不要
 						else
 							tmp[prev].min_max = nil
-							tmp[i].min_max = :mark_min
+							current.min_max = :mark_min
 							prev = i
 						end
 					else
-						tmp[i].min_max = :mark_min
+						current.min_max = :mark_min
 						prev = i
 					end
 				else
@@ -273,7 +274,7 @@ EOS
 						tmp[prev_min].min_max = :mark_min
 					end
 
-					tmp[i].min_max = :mark_max
+					current.min_max = :mark_max
 					prev = i
 				end
 
@@ -281,6 +282,66 @@ EOS
 			end
 
 			tmp
+		end
+
+		def self.check_gradient(tmp)
+			result = []
+
+			calc = lambda do |i, j|
+				diff_dis = tmp[j].distance_from_start - tmp[i].distance_from_start
+				break [] if diff_dis == 0.0
+
+				a = (tmp[j].ele - tmp[i].ele) / diff_dis
+				b = tmp[i].ele - a * tmp[i].distance_from_start
+
+				if tmp[j].distance_from_start - tmp[i].distance_from_start > 1.0
+					data = 0
+					index = 0
+
+					((i+1)..(j-1)).each do |k|
+						ele_calc = a * tmp[k].distance_from_start + b
+						d = (tmp[k].ele - ele_calc).abs
+
+						if d >= data
+							data = d
+							index = k
+						end
+					end
+
+					if data >= GRAD_LIMIT_SPLIT_ELEVATION
+						break calc.call(i, index) + calc.call(index, j)
+					end
+				end
+
+				break [ GradientData.new( tmp[i], tmp[j], (a / 10.0).to_i ) ]
+			end
+
+			prev = 0
+			tmp.each.with_index do |e, i|
+				unless e.min_max.nil?
+					if e.min_max == :mark_max
+						ret = calc.call(prev, i)
+						next if ret.size == 0
+
+						current = 0
+						while current + 1 < ret.size
+							if ret[current].grad == ret[current + 1].grad
+								ret[current].start = ret[current].start
+								ret[current].end = ret[current + 1].end
+								ret.delete_at(current + 1)
+							else
+								current += 1
+							end
+						end
+
+						result += ret
+					else
+						prev = i
+					end
+				end
+			end
+
+			result
 		end
 
 		def initialize
@@ -339,14 +400,6 @@ EOS
 			@steps.delete_if {|p| p.distance(pt) < dis }
 		end
 
-		def check_peak(offset)
-			check_distance_from_start(offset)
-
-			unless mark_peak?
-				Path.check_peak(@steps)
-			end
-		end
-
 		def mark_peak?
 			@mark_peak
 		end
@@ -387,6 +440,8 @@ EOS
 		LOC_PER_REQUEST = 256
 
 		PEAK_SEARCH_DISTANCE = 2.5
+
+		GRAD_LIMIT_SPLIT_ELEVATION = 37.5
 
 		def fetch_elevation_internal(start_index, points, elevation_cache)
 			data = elevation_cache.cache(points) do
@@ -516,24 +571,20 @@ EOS
 		end
 
 		def total_elevation
+			pts = flatten
+			Path.check_peak(pts)
+
 			elevation = 0.0
-			offset = 0.0
-
-			@routes.each do |route|
-				route.path_list.each do |path|
-					path.check_peak(offset)
-					offset = path.steps.last.distance_from_start
-
+			prev = nil
+			pts.each do |s|
+				if s.min_max == :mark_max
+					elevation += s.ele - prev.ele
 					prev = nil
-					path.steps.each.with_index do |s, i|
-						if s.min_max == :mark_max
-							elevation += s.ele - prev.ele
-						elsif s.min_max_marked?
-							prev = s
-						end
-					end
+				elsif s.min_max_marked? && (prev.nil? || prev.ele > s.ele)
+					prev = s
 				end
 			end
+
 			elevation
 		end
 
@@ -561,6 +612,16 @@ EOS
 
 		attr_reader :routes
 		attr_accessor :name, :start_date, :finish_date, :original_file_path, :resources, :schedule
+	end
+
+	class GradientData
+		def initialize(start, end_, grad)
+			@start = start
+			@end = end_
+			@grad = grad
+		end
+
+		attr_accessor :start, :end, :grad
 	end
 
 	class Resource
