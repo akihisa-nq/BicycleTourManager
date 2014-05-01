@@ -7,6 +7,7 @@
 		small = scaled(8)
 		medium = scaled(10)
 		large = scaled(12)
+		very_large = scaled(18)
 
 		dir_size = scaled(48)
 		dis_size = scaled(64)
@@ -146,6 +147,11 @@
 			width : 100%;
 			height : auto;
 		}
+
+		.distance_addition
+		{
+			font-size : <%= very_large %>;
+		}
 		</style>
 	</head>
 	<body>
@@ -158,14 +164,13 @@
 			<% if @context.enable_hide? && node.info.hide? %>
 			<table>
 			<tr>
-				<td class="pc_distance">---- km</td>
+				<td class="distance_addition" rowspan="2">+ k</td>
 				<td rowspan="3" class="direction"><div class="empty_direction">&nbsp;</div></td>
 				<td class="node_name">????</td>
 				<td class="next_direction">????</td>
-				<td class="total_distance">-- km</td>
+				<td class="total_distance">--/-- k</td>
 			</tr>
 			<tr>
-				<td class="distance_addition">+ -- km</td>
 				<td colspan="2" class="other_directions"> </td>
 				<td class="total_elapsed">-:-/-:-</td>
 			</tr>
@@ -178,14 +183,13 @@
 			<% else %>
 			<table>
 			<tr>
-				<td class="pc_distance"><%= pc_total_distance %> km</td>
+				<td class="distance_addition" rowspan="2"><%= node_distance_addition %></td>
 				<td rowspan="3" class="direction"><%= render_node %></td>
 				<td class="node_name"><%= node.info.name %></td>
 				<td class="next_direction"><%= node.info.next_relative_dir %> <%= node.info.next_road %></td>
-				<td class="total_distance"><%= total_distance %> km</td>
+				<td class="total_distance"><%= pc_total_distance %>/<%= total_distance %>k</td>
 			</tr>
 			<tr>
-				<td class="distance_addition"><%= node_distance_addition %></td>
 				<td colspan="2" class="other_directions"><%= node.info.other_roads %></td>
 				<td class="total_elapsed"><%= total_elapsed %></td>
 			</tr>

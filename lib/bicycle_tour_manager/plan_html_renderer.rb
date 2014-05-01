@@ -76,7 +76,7 @@ module BTM
 
 		def node_distance_addition
 			if @context.distance_addition > 0.0
-				"+ %.1f km" % [ @context.distance_addition ]
+				"+%.1fk" % [ @context.distance_addition ]
 			else
 				""
 			end
