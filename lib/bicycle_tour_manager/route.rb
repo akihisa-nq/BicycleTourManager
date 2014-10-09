@@ -620,7 +620,7 @@ EOS
 			offset = 0.0
 			@routes.each do |route|
 				route.check_distance_from_start(offset)
-				offset = route.path_list.last.steps.last.distance_from_start
+				offset = route.path_list.select {|p| p.steps.count > 0 }.last.steps.last.distance_from_start
 			end
 		end
 
