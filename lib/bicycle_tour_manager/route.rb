@@ -514,7 +514,7 @@ EOS
 		end
 
 		def elevation_minmax
-			@path_list.map {|p| p.elevation_minmax }.flatten.minmax
+			@path_list.select {|p| p.steps.count > 0 }.map {|p| p.elevation_minmax }.flatten.minmax
 		end
 
 		def check_distance_from_start(offset)
