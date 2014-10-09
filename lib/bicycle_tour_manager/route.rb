@@ -372,7 +372,11 @@ EOS
 			end 
 			route_result = YAML.load(data)["routes"][0]
 
-			@distance = route_result["legs"].map {|i| i["distance"]["value"].to_f / 1000.0 }.inject(:+)
+			@distance = 0
+			
+			if route_result && route_result["legs"]
+				@distance = route_result["legs"].map {|i| i["distance"]["value"].to_f / 1000.0 }.inject(:+)
+			end
 
 			# 高度情報はキャッシュしておく
 			if @distance > 0
