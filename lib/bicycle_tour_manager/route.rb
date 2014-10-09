@@ -375,7 +375,9 @@ EOS
 			@distance = route_result["legs"].map {|i| i["distance"]["value"].to_f / 1000.0 }.inject(:+)
 
 			# 高度情報はキャッシュしておく
-			fetch_elevation_internal(0, route_result["overview_polyline"]["points"], elevation_cache)
+			if @distance > 0
+				fetch_elevation_internal(0, route_result["overview_polyline"]["points"], elevation_cache)
+			end
 		end
 
 		def fetch_elevation(elevation_cache)
