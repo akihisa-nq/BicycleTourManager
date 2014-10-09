@@ -477,7 +477,7 @@ EOS
 
 		def flatten
 			tmp = @path_list.map.with_index do |r, i|
-				if r.steps.length == 1
+				if r.steps.length < 2
 					[]
 				else
 					steps = r.steps[0..-2].map {|s| s.dup }
