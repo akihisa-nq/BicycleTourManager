@@ -487,7 +487,9 @@ EOS
 			end
 			tmp = tmp.inject(:+)
 
-			tmp << @path_list[-1].steps[-1].dup
+			if @path_list[-1].steps.count > 0
+				tmp << @path_list[-1].steps[-1].dup
+			end
 			tmp[-1].waypoint_index = @path_list.size + 1
 
 			prev = tmp[0]
