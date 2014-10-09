@@ -519,8 +519,10 @@ EOS
 
 		def check_distance_from_start(offset)
 			@path_list.each do |path|
-				path.check_distance_from_start(offset)
-				offset = path.steps.last.distance_from_start
+				if path.steps.length > 0
+					path.check_distance_from_start(offset)
+					offset = path.steps.last.distance_from_start
+				end
 			end
 		end
 
