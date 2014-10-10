@@ -378,7 +378,7 @@ EOS
 			end
 
 			# 高度情報はキャッシュしておく
-			if node_result && route_result["overview_polyline"] && route_result["overview_polyline"]["points"]
+			if route_result && route_result["overview_polyline"] && route_result["overview_polyline"]["points"]
 				fetch_elevation_internal(0, route_result["overview_polyline"]["points"], elevation_cache)
 			end
 		end
