@@ -375,11 +375,15 @@ EOS
 			@distance = 0
 			if route_result && route_result["legs"]
 				@distance = route_result["legs"].map {|i| i["distance"]["value"].to_f / 1000.0 }.inject(:+)
+			else
+				raise Exception.new("#{key} : #{data}")
 			end
 
 			# 高度情報はキャッシュしておく
 			if route_result && route_result["overview_polyline"] && route_result["overview_polyline"]["points"]
 				fetch_elevation_internal(0, route_result["overview_polyline"]["points"], elevation_cache)
+			else
+				raise Exception.new("#{key} : #{data}")
 			end
 		end
 
