@@ -228,7 +228,7 @@ EOF
 			end
 
 			file << <<EOF
-		<name>PC#{route.index} - š#{index}</name>
+		<name>PC#{route.index} - â˜…#{index}</name>
 	</wpt>
 EOF
 		end
