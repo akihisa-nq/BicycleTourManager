@@ -153,22 +153,13 @@ EOF
 EOF
 
 			tour.routes.each do |pc|
-				pc.path_list.each.with_index do |route, i|
-					write_way_point(
-						file,
-						pc.index,
-						route.steps[0],
-						i + 1
-						)
+				i = 1
+				pc.path_list.each do |route|
+					route.way_points.each do |wpt|
+						write_way_point(file, route.index, wpt, i)
+						i += 1
 				end
 			end
-
-			write_way_point(
-				file,
-				tour.routes[-1].index,
-				tour.routes[-1].path_list[-1].steps[-1],
-				tour.routes[-1].path_list.size + 1
-				)
 
 			file << <<EOF
 	<trk>
