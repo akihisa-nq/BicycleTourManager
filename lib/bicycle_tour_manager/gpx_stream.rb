@@ -156,7 +156,7 @@ EOF
 				pc.path_list.each.with_index do |route, i|
 					write_way_point(
 						file,
-						route,
+						pc.index,
 						route.steps[0],
 						i + 1
 						)
@@ -165,7 +165,7 @@ EOF
 
 			write_way_point(
 				file,
-				tour.routes[-1],
+				tour.routes[-1].index,
 				tour.routes[-1].path_list[-1].steps[-1],
 				tour.routes[-1].path_list.size + 1
 				)
@@ -215,7 +215,7 @@ EOF
 
 		private
 
-		def self.write_way_point(file, route, wpt, index)
+		def self.write_way_point(file, pc_index, wpt, index)
 			file << <<EOF
 	<wpt lat="#{wpt.lat}" lon="#{wpt.lon}">
 		<ele>#{wpt.ele}</ele>
@@ -228,7 +228,7 @@ EOF
 			end
 
 			file << <<EOF
-		<name>PC#{route.index} - ★#{index}</name>
+		<name>PC#{pc_index} - ★#{index}</name>
 	</wpt>
 EOF
 		end
