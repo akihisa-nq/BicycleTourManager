@@ -156,7 +156,7 @@ EOF
 				i = 1
 				pc.path_list.each do |route|
 					route.way_points.each do |wpt|
-						write_way_point(file, route.index, wpt, i)
+						write_way_point(file, pc.index, wpt, i)
 						i += 1
 					end
 				end
