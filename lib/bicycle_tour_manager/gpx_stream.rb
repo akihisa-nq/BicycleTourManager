@@ -154,32 +154,21 @@ EOF
 
 			tour.routes.each do |pc|
 				pc.path_list.each.with_index do |route, i|
-					file << <<EOF
-	<wpt lat="#{route.steps[0].lat}" lon="#{route.steps[0].lon}">
-		<ele>#{route.steps[0].ele}</ele>
-		<name>PC#{pc.index} - ‚òÖ#{i + 1}</name>
-	</wpt>
-EOF
+					write_way_point(
+						file,
+						route,
+						route.steps[0],
+						i + 1
+						)
 				end
 			end
 
-			wpt = tour.routes[-1].path_list[-1].steps[-1]
-
-			file << <<EOF
-	<wpt lat="#{wpt.lat}" lon="#{wpt.lon}">
-		<ele>#{wpt.ele}</ele>
-EOF
-
-			if wpt.time
-				file << <<EOF
-		<time>#{wpt.time.getutc.strftime("%Y-%m-%dT%H:%M:%SZ")}</time>
-EOF
-			end
-
-			file << <<EOF
-		<name>PC#{tour.routes[-1].index} - ‚òÖ#{tour.routes[-1].path_list.size + 1}</name>
-	</wpt>
-EOF
+			write_way_point(
+				file,
+				tour.routes[-1],
+				tour.routes[-1].path_list[-1].steps[-1],
+				tour.routes[-1].path_list.size + 1
+				)
 
 			file << <<EOF
 	<trk>
@@ -221,6 +210,26 @@ EOF
 			file << <<EOF
 	</trk>
 </gpx>
+EOF
+		end
+
+		private
+
+		def self.write_way_point(file, route, wpt, index)
+			file << <<EOF
+	<wpt lat="#{wpt.lat}" lon="#{wpt.lon}">
+		<ele>#{wpt.ele}</ele>
+EOF
+
+			if wpt.time
+				file << <<EOF
+		<time>#{wpt.time.getutc.strftime("%Y-%m-%dT%H:%M:%SZ")}</time>
+EOF
+			end
+
+			file << <<EOF
+		<name>PC#{route.index} - Åö#{index}</name>
+	</wpt>
 EOF
 		end
 	end
