@@ -15,7 +15,7 @@ describe "route2html" do
 		expect(system("ruby #{bin} #{test_file}")).to eq true
 		expect(File.exist?(test_result)).to eq true
 
-		system("wkhtmltopdf --disable-smart-shrinking -s A5 -O Landscape -L 4mm -R 4mm -T 4mm -B 0mm  #{test_result} #{test_result.gsub(/\.html$/, ".pdf")}")
-		# system("wkhtmltopdf --disable-smart-shrinking -s A6 -L 4mm -R 4mm -T 4mm -B 0mm  #{test_result} #{test_result.gsub(/\.html$/, ".pdf")}")
+		# system("wkhtmltopdf --disable-smart-shrinking -s A5 -O Landscape -L 4mm -R 4mm -T 4mm -B 0mm  #{test_result} #{test_result.gsub(/\.html$/, ".pdf")}")
+		system("wkhtmltopdf --disable-smart-shrinking -s A6 -L 4mm -R 4mm -T 4mm -B 0mm  #{test_result} #{test_result.gsub(/\.html$/, ".pdf")}")
 	end
 end

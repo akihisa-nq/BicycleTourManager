@@ -9,7 +9,11 @@
 		large = scaled(12)
 		very_large = scaled(18)
 
-		dir_size = scaled(48)
+        navi_width = scaled(32)
+        navi_height = scaled(10)
+		dir_width = scaled(48 + 32 * 2)
+		dir_height = scaled(48 + 10 * 2)
+        dir_box_size = scaled(48)
 		dis_size = scaled(64)
 
 		height = scaled(16)
@@ -22,22 +26,54 @@
 			margin-bottom : 0em;
 		}
 
-		table
+		table.tag
 		{	
-			width : <% if half? %>100%<% else %>48%<% end %>;
+			width : 100%;
 			border : 1px solid black;
 			border-collapse : collapse;
 			margin-bottom : 1%;
 			float : left;
 		}
 
-		td
+        table.tag > tbody > tr > td
 		{
 			font-size : <%= medium %>;
 			padding : 0.1em;
 			border : 1px solid black;
 			height : <%= height %>;
 		}
+
+        table.navi > tbody > tr > td
+        {
+			font-size : <%= medium %>;
+			height : <%= medium %>;
+        }
+
+        td.navi_ne, td.navi_nw, td.navi_sw, td.navi_se
+        {
+            width : <%= navi_width %>;
+            height : <%= navi_height %>;
+        }
+
+        td.navi_nw, td.navi_w, td.navi_sw
+        {
+            text-align : right;
+        }
+
+        td.navi_ne, td.navi_e, td.navi_se
+        {
+            text-align : left;
+        }
+
+        td.navi_n, td.navi_s
+        {
+            text-align : center;
+        }
+
+        td.navi_e, td.navi_w
+        {
+            vertical-align : middle;
+        }
 
 		.page
 		{
@@ -72,23 +108,23 @@
 
 		.direction
 		{
-			width : <%= dir_size %>;
-			height : <%= dir_size %>;
+			width : <%= dir_width %>;
+			height : <%= dir_height %>;
 		}
 
 		.empty_direction
 		{
 			display : inline-block;
-			width : <%= dir_size %>;
-			height : <%= dir_size %>;
+			width : <%= dir_width %>;
+			height : <%= dir_height %>;
 		}
 
 		.direction_box
 		{
 			position : relative;
 			float : left;
-			width : <%= dir_size %>;
-			height : <%= dir_size %>;
+			width : <%= dir_box_size %>;
+			height : <%= dir_box_size %>;
 		}
 
 		.direction_box img
@@ -96,8 +132,8 @@
 			position : absolute;
 			left : 0px;
 			top : 0px;
-			width : <%= dir_size %>;
-			height : <%= dir_size %>;
+			width : <%= dir_box_size %>;
+			height : <%= dir_box_size %>;
 		}
 
 		.total_direction
@@ -162,54 +198,71 @@
 
 			<% @context.each_node do |node| %>
 			<% if @context.enable_hide? && node.info.hide? %>
-			<table>
+			<table class="tag">
 			<tr>
 				<td class="distance_addition" rowspan="2">+ k</td>
-				<td rowspan="3" class="direction"><div class="empty_direction">&nbsp;</div></td>
-				<td class="node_name">????</td>
-				<td class="next_direction">????</td>
+                <td rowspan="3" class="direction"><table>
+					<tr>
+						<td class="navi_ne">&nbsp;</td>
+						<td class="navi_n"></td>
+						<td class="navi_nw">&nbsp;</td>
+					</tr>
+					<tr>
+						<td class="navi_e"></td>
+                        <td><div class="empty_direction">&nbsp;</div></td>
+						<td class="navi_w"></td>
+					</tr>
+					<tr>
+						<td class="navi_se">&nbsp;</td>
+						<td class="navi_s"></td>
+						<td class="navi_sw">&nbsp;</td>
+					</tr>
+                </table></td>
+				<td rowspan="2" class="node_name">????</td>
 				<td class="total_distance">--/-- k</td>
 			</tr>
 			<tr>
-				<td colspan="2" class="other_directions"> </td>
 				<td class="total_elapsed">-:-/-:-</td>
 			</tr>
 			<tr>
 				<td class="pc_elapsed">-:-/-:-</td>
-				<td colspan="2" class="comment"> </td>
+				<td class="comment"> </td>
 				<td class="speed"><span class="speed_label">速</span>--/--</td>
 			</tr>
 			</table>
 			<% else %>
-			<table>
+			<table class="tag">
 			<tr>
 				<td class="distance_addition" rowspan="2"><%= node_distance_addition %></td>
-				<td rowspan="3" class="direction"><%= render_node %></td>
-				<td class="node_name"><%= node.info.name %></td>
-				<td class="next_direction"><%= node.info.next_relative_dir %> <%= node.info.next_road %></td>
+				<td rowspan="3" class="direction"><table class="navi_table">
+					<tr>
+						<td class="navi_ne"></td>
+						<td class="navi_n"></td>
+						<td class="navi_nw"></td>
+					</tr>
+					<tr>
+						<td class="navi_e"></td>
+						<td><%= render_node %></td>
+						<td class="navi_w"></td>
+					</tr>
+					<tr>
+						<td class="navi_se"></td>
+						<td class="navi_s"></td>
+						<td class="navi_sw"></td>
+					</tr>
+				</table></td>
+				<td rowspan="2" class="node_name"><%= node.info.name %></td>
 				<td class="total_distance"><%= pc_total_distance %>/<%= total_distance %>k</td>
 			</tr>
 			<tr>
-				<td colspan="2" class="other_directions"><%= node.info.other_roads %></td>
 				<td class="total_elapsed"><%= total_elapsed %></td>
 			</tr>
 			<tr>
 				<td class="pc_elapsed"><%= pc_total_elapsed %></td>
-				<td colspan="2" class="comment"><%= comment %></td>
+				<td class="comment"><%= comment %></td>
 				<td class="speed"><span class="speed_label">速</span><%= node.info.target_speed %>/<%= node.info.limit_speed %></td>
 			</tr>
 			</table>
-			<% end %>
-			<% unless half? %>
-			<div class="next">
-				<br />
-				<br />
-				<br />
-				＞<br />
-				<br />
-				<br />
-				<br />
-			</div>
 			<% end %>
 			<% end  %>
 

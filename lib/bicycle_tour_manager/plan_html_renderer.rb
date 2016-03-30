@@ -32,10 +32,6 @@ module BTM
 			File.dirname(@output)
 		end
 
-		def half?
-			@option[:format] == :half
-		end
-
 		def scaled(px)
 			scale = @option[:scale] || 1.0
 			"#{(scale * px).to_i}px"
