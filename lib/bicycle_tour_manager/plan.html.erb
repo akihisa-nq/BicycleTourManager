@@ -194,7 +194,7 @@
 		<% @context.each_page do |pc, i, page_max| %>
 		<div class="page">
 			<h1>PC<%= pc.index %> <%= i + 1 %>/<%= page_max %></h1>
-			<%= altitude_graph %>
+			<!-- <%= altitude_graph %> -->
 
 			<% @context.each_node do |node| %>
 			<% if @context.enable_hide? && node.info.hide? %>
