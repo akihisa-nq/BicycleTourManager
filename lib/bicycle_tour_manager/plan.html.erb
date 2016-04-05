@@ -9,12 +9,12 @@
 		large = scaled(12)
 		very_large = scaled(18)
 
-        navi_width = scaled(32)
-        navi_height = scaled(10)
-		dir_width = scaled(48 + 32 * 2)
-		dir_height = scaled(48 + 10 * 2)
+        navi_width = scaled(40)
+        navi_height = scaled(16)
+		dir_width = scaled(48 + 40 * 2)
+		dir_height = scaled(48 + 16 * 2)
         dir_box_size = scaled(48)
-		dis_size = scaled(64)
+		dis_size = scaled(32)
 
 		height = scaled(16)
 		%>
@@ -43,10 +43,9 @@
 			height : <%= height %>;
 		}
 
-        table.navi > tbody > tr > td
+        table.navi_table > tbody > tr > td
         {
 			font-size : <%= medium %>;
-			height : <%= medium %>;
         }
 
         td.navi_ne, td.navi_nw, td.navi_sw, td.navi_se
@@ -115,8 +114,8 @@
 		.empty_direction
 		{
 			display : inline-block;
-			width : <%= dir_width %>;
-			height : <%= dir_height %>;
+			width : <%= dir_box_size %>;
+			height : <%= dir_box_size %>;
 		}
 
 		.direction_box
@@ -200,8 +199,8 @@
 			<% if @context.enable_hide? && node.info.hide? %>
 			<table class="tag">
 			<tr>
-				<td class="distance_addition" rowspan="2">+ k</td>
-                <td rowspan="3" class="direction"><table>
+				<td colspan="2" class="distance_addition">+ k</td>
+                <td rowspan="6" class="direction"><table>
 					<tr>
 						<td class="navi_ne">&nbsp;</td>
 						<td class="navi_n"></td>
@@ -218,23 +217,32 @@
 						<td class="navi_sw">&nbsp;</td>
 					</tr>
                 </table></td>
-				<td rowspan="2" class="node_name">????</td>
-				<td class="total_distance">--/-- k</td>
 			</tr>
 			<tr>
-				<td class="total_elapsed">-:-/-:-</td>
+				<td colspan="2" class="comment">????</td>
 			</tr>
 			<tr>
-				<td class="pc_elapsed">-:-/-:-</td>
-				<td class="comment"> </td>
-				<td class="speed"><span class="speed_label">速</span>--/--</td>
+				<td class="speed"><span class="speed_label">速</span>--</td>
+				<td class="speed"><span class="speed_label">速</span>--</td>
+			</tr>
+			<tr>
+				<td class="pc_elapsed">-:-</td>
+				<td class="pc_elapsed">-:-</td>
+			</tr>
+			<tr>
+				<td class="total_distance">--k</td>
+				<td class="total_distance">--k</td>
+			</tr>
+			<tr>
+				<td class="total_elapsed">-:-</td>
+				<td class="total_elapsed">-:-</td>
 			</tr>
 			</table>
 			<% else %>
 			<table class="tag">
 			<tr>
-				<td class="distance_addition" rowspan="2"><%= node_distance_addition %></td>
-				<td rowspan="3" class="direction"><table class="navi_table">
+				<td colspan="2" class="distance_addition"><%= node_distance_addition %></td>
+				<td rowspan="6" class="direction"><table class="navi_table">
 					<tr>
 						<td class="navi_ne"><%= node.info.road["NE"] %></td>
 						<td class="navi_n"><%= node.info.road["N"] %></td>
@@ -251,16 +259,23 @@
 						<td class="navi_sw"><%= node.info.road["SW"] %></td>
 					</tr>
 				</table></td>
-				<td rowspan="2" class="node_name"><%= node.info.name %></td>
-				<td class="total_distance"><%= pc_total_distance %>/<%= total_distance %>k</td>
 			</tr>
 			<tr>
-				<td class="total_elapsed"><%= total_elapsed %></td>
+				<td colspan="2" class="comment"><%= node.info.name %><%= comment %></td>
 			</tr>
 			<tr>
-				<td class="pc_elapsed"><%= pc_total_elapsed %></td>
-				<td class="comment"><%= comment %></td>
-				<td class="speed"><span class="speed_label">速</span><%= node.info.target_speed %>/<%= node.info.limit_speed %></td>
+				<td class="speed"><span class="speed_label">速</span><%= node.info.target_speed %></td>
+				<td class="speed"><span class="speed_label">速</span><%= node.info.limit_speed %></td>
+			</tr>
+			<tr>
+				<td colspan="2" class="pc_elapsed"><%= pc_total_elapsed %></td>
+			</tr>
+			<tr>
+				<td class="total_distance"><%= pc_total_distance %>k</td>
+				<td></td>
+			</tr>
+			<tr>
+				<td colspan="2" class="total_elapsed"><%= total_elapsed %></td>
 			</tr>
 			</table>
 			<% end %>
@@ -280,6 +295,7 @@
 				<% @context.res_context.each do |r| %>
 				<%= resources_left(r) %>
 				<% end %>
+				<%= total_distance %>k
 			</div>
 			<% end %>
 		</div>

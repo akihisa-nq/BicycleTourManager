@@ -21,7 +21,7 @@ module BTM
 			@res_context = plan.resources.map {|r| ResourceContext.new(r) }
 			@schedule_context = plan.schedule.map {|s| ScheduleContext.new(s) }
 
-			@per_page = option[:per_page] || (option[:format] == :half ? 7 : 12)
+			@per_page = option[:per_page] || 3
 			@enable_hide = option[:enable_hide].nil? ? true : option[:enable_hide]
 			@format = option[:format] || :standard
 		end
@@ -164,40 +164,20 @@ module BTM
 
 		def plot_graph
 			if @plotter
-				if @format == :half
-					if @graph_route.path_list.last.steps.count == 0
-						@graph_route.path_list.delete_at(-1)
-					end
-
-					min, max = *@graph_route.elevation_minmax
+				unless @generated[@route.index]
+					min, max = *@route.elevation_minmax
 					min ||= 0
 					max ||= 1000
 
 					@plotter.elevation_min = (min / 100) * 100 - 100
 					@plotter.elevation_max = [@plotter.elevation_min + 1100, ((max - 1) / 100 + 1) * 100].max + 100
-					@plotter.distance_offset = @graph_route.path_list[0].steps[0].distance_from_start
-					@plotter.waypoint_offset = @graph_waypoint_offset
+					@plotter.distance_offset = @route.path_list[0].steps[0].distance_from_start
+					@plotter.waypoint_offset = 0
 
-					path = File.join(@work_dir, "PC#{@route.index}_#{@page_number}.png")
-					@plotter.plot(@graph_route, path)
+					path = File.join(@work_dir, "PC#{@route.index}.png")
+					@plotter.plot(@route, path)
 
-					@graph_waypoint_offset += @page_node.count - 1
-				else
-					unless @generated[@route.index]
-						min, max = *@route.elevation_minmax
-						min ||= 0
-						max ||= 1000
-
-						@plotter.elevation_min = (min / 100) * 100 - 100
-						@plotter.elevation_max = [@plotter.elevation_min + 1100, ((max - 1) / 100 + 1) * 100].max + 100
-						@plotter.distance_offset = @route.path_list[0].steps[0].distance_from_start
-						@plotter.waypoint_offset = 0
-
-						path = File.join(@work_dir, "PC#{@route.index}.png")
-						@plotter.plot(@route, path)
-
-						@generated[@route.index] = true
-					end
+					@generated[@route.index] = true
 				end
 			end
 		end
