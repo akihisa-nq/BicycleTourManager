@@ -19,6 +19,39 @@
 		height = scaled(16)
 		%>
 
+		table.sheet
+		{
+			width : 100%;
+			height : 100%;
+			border-collapse : separate;
+			border-spacing : <%= scaled(8) %>;
+		}
+
+        table.sheet > tbody > tr > td
+		{
+			width : 25%;
+			height : 50%;
+			vertical-align : top;
+			border : black 1px solid;
+			border-spacing : <%= scaled(8) %>;
+		}
+
+		div.hole_up
+		{
+			font-size : <%= small %>;
+			position : absolute;
+			left : <%= scaled(7.5) %>;
+			top : 100px;
+		}
+
+		div.hole_down
+		{
+			font-size : <%= small %>;
+			position : absolute;
+			left : <%= scaled(7.5) %>;
+			bottom : 100px;
+		}
+
 		h1
 		{
 			font-size : <%= large %>;
@@ -74,16 +107,25 @@
             vertical-align : middle;
         }
 
-		.page
+		.sheet
 		{
-			clear : both;
 			page-break-after : always;
 			page-break-inside : avoid;
 		}
 
-		.page:last-child
+		.sheet:last-child
 		{
 			page-break-after : auto;
+		}
+
+		.page
+		{
+			clear : both;
+			position : relative;
+			left : 0px;
+			top : 0px;
+			width : 100%;
+			height : 100%;
 		}
 
 		.resource
@@ -187,18 +229,32 @@
 		{
 			font-size : <%= very_large %>;
 		}
+
+		td.hole
+		{
+			font-size : 0px;
+			width : <%= scaled(20); %>;
+		}
 		</style>
 	</head>
 	<body>
+		<table class="sheet">
+		<% total = 0 %>
 		<% @context.each_page do |pc, i, page_max| %>
-		<div class="page">
+		<% if (total % 4) == 0 then %>
+		<tr>
+		<% end %>
+		<td><div class="page">
+			<div class="hole_up">○</div>
+			<div class="hole_down">○</div>
+
 			<h1>PC<%= pc.index %> <%= i + 1 %>/<%= page_max %></h1>
-			<!-- <%= altitude_graph %> -->
 
 			<% @context.each_node do |node| %>
 			<% if @context.enable_hide? && node.info.hide? %>
 			<table class="tag">
 			<tr>
+				<td rowspan="6" class="hole">&nbsp;&nbsp;</td>
 				<td colspan="2" class="distance_addition">+ k</td>
                 <td rowspan="6" class="direction"><table>
 					<tr>
@@ -241,6 +297,7 @@
 			<% else %>
 			<table class="tag">
 			<tr>
+				<td rowspan="6" class="hole">&nbsp;&nbsp;</td>
 				<td colspan="2" class="distance_addition"><%= node_distance_addition %></td>
 				<td rowspan="6" class="direction"><table class="navi_table">
 					<tr>
@@ -290,7 +347,7 @@
 				<%= schedule_status(sch) %>
 				<% end %>
 				<% @context.use do |key, value| %>
-				【<%= key %> <%= value %>】
+				?y<%= key %> <%= value %>?z
 				<% end %>
 				<% @context.res_context.each do |r| %>
 				<%= resources_left(r) %>
@@ -298,7 +355,15 @@
 				<%= total_distance %>k
 			</div>
 			<% end %>
-		</div>
+		</div></td>
+		<% if (total % 4) == 3 %>
+		</tr>
 		<% end %>
+		<% total += 1 %>
+		<% end %>
+		<% if (total % 4) != 3 %>
+		</tr>
+		<% end %>
+		</table>
 	</body>
 </html>
