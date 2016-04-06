@@ -37,11 +37,8 @@ module BTM
 			"#{(scale * px).to_i}px"
 		end
 
-		def altitude_graph
-			pc_alt_image = File.absolute_path(File.join(work_dir, "PC#{@context.route.index}.png"))
-			unless File.exist?(pc_alt_image)
-				pc_alt_image = File.absolute_path(File.join(work_dir, "PC#{@context.route.index}_#{@context.page_number}.png"))
-			end
+		def altitude_graph(index)
+			pc_alt_image = File.absolute_path(File.join(work_dir, "PC#{index}.png"))
 
 			if File.exist?(pc_alt_image)
 				<<-EOS

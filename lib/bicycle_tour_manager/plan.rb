@@ -93,6 +93,8 @@ module BTM
 				page_max = 0
 				@page_number = 0
 
+				plot_graph()
+
 				count = 0
 				@route.path_list.each do |page|
 					page.steps.each do |node|
@@ -108,41 +110,29 @@ module BTM
 				end
 				page_max += 1 if count > 0
 
-				@graph_route = Route.new
-				@graph_waypoint_offset = 0
 				@generated = {}
 
 				@page_node = []
 				@route.path_list.each do |page|
 					next if page.steps.count == 0
 
-					@graph_route.path_list << Path.new
-
 					page.steps.each do |node|
 						if node.info
 							@page_node << node
 
 							if node.info.page_break? || @page_node.length >= @per_page
-								plot_graph
 								block.call(@route, @page_number, page_max)
 
 								@page_node.clear
-								@graph_route.path_list.clear
-								@graph_route.path_list << Path.new
-								@graph_route.path_list.last.steps << node
 								@page_number += 1
 							end
-						else
-							@graph_route.path_list.last.steps << node
 						end
 					end
 				end
 
 				if @page_node.length > 0
-					plot_graph
 					block.call(@route, @page_number, page_max)
 					@page_node.clear
-					@graph_route = nil
 				end
 
 				@generated = {}
@@ -158,6 +148,10 @@ module BTM
 
 		def enable_hide?
 			@enable_hide
+		end
+
+		def route_count
+			@plan.routes.count
 		end
 
 		attr_reader :distance_addition, :time_addition, :target_time_addition, :pc, :route, :node, :task_queue, :res_context, :schedule_context, :use, :page_number

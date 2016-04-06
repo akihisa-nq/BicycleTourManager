@@ -19,6 +19,19 @@
 		height = scaled(16)
 		%>
 
+		table.graph
+		{
+			width : 100%;
+			border-collapse : collapse;
+		}
+
+        table.graph > tbody > tr > td
+		{
+			width : 50%;
+			vertical-align : top;
+			border : black 1px solid;
+		}
+
 		table.sheet
 		{
 			width : 100%;
@@ -33,7 +46,6 @@
 			height : 50%;
 			vertical-align : top;
 			border : black 1px solid;
-			border-spacing : <%= scaled(8) %>;
 		}
 
 		div.hole_up
@@ -351,6 +363,14 @@
 		<% total += 1 %>
 		<% end %>
 		<% if (total % 4) != 3 %>
+		</tr>
+		<% end %>
+		</table>
+		<table class="graph">
+		<% ((@context.route_count + 1) / 2).times do |i| %>
+		<tr>
+			<td colspan="2"><%= altitude_graph(2 * i + 1) %></td>
+			<td colspan="2"><%= altitude_graph(2 * i + 2) %></td>
 		</tr>
 		<% end %>
 		</table>
