@@ -74,6 +74,14 @@ module BTM
 			format_time(@context.node.time)
 		end
 
+		def time_addition
+			"%02d:%02d" % [ @context.time_addition / 3600, (@context.time_addition % 3600) / 60 ]
+		end
+
+		def target_time_addition
+			"%02d:%02d" % [ @context.time_addition / 3600, (@context.target_time_addition % 3600) / 60 ]
+		end
+
 		def node_distance_addition
 			if @context.distance_addition > 0.0
 				"+%.1fk" % [ @context.distance_addition ]

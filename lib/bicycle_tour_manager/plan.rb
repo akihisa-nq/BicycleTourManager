@@ -15,6 +15,8 @@ module BTM
 			@node.time_target = plan.start_date
 
 			@distance_addition = 0.0
+			@time_addtion = 0.0
+			@target_time_addtion = 0.0
 
 			@previous_total_target_time = plan.start_date
 			@task_queue = []
@@ -158,7 +160,7 @@ module BTM
 			@enable_hide
 		end
 
-		attr_reader :distance_addition, :pc, :route, :node, :task_queue, :res_context, :schedule_context, :use, :page_number
+		attr_reader :distance_addition, :time_addition, :target_time_addition, :pc, :route, :node, :task_queue, :res_context, :schedule_context, :use, :page_number
 
 		private
 
@@ -185,13 +187,13 @@ module BTM
 		def increment(node)
 			@distance_addition = node.distance_on_path(@node)
 
-			elapsed_time = (@distance_addition / @node.info.limit_speed * 3600).to_i
-			target_elapsed_time = ((@distance_addition / @node.info.target_speed + node.info.rest_time) * 3600).to_i
+			@time_addition = (@distance_addition / @node.info.limit_speed * 3600).to_i
+			@target_time_addition = ((@distance_addition / @node.info.target_speed + node.info.rest_time) * 3600).to_i
 
-			node.time = @node.time + elapsed_time
-			node.time_target = @node.time_target + target_elapsed_time
+			node.time = @node.time + @time_addition
+			node.time_target = @node.time_target + @target_time_addition
 
-			@pc.increment(elapsed_time, target_elapsed_time)
+			@pc.increment(@time_addition, @target_time_addition)
 
 			@node = node
 		end

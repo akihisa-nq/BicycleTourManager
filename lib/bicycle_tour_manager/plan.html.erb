@@ -95,7 +95,7 @@
 
         table.tag > tbody > tr > td.comment
 		{
-			font-size : <%= medium %>;
+			font-size : <%= large %>;
 		}
 
         table.tag > tbody > tr > td.speed_label
@@ -244,9 +244,9 @@
 			<% if @context.enable_hide? && node.info.hide? %>
 			<table class="tag">
 			<tr>
-				<td rowspan="4" class="hole">&nbsp;&nbsp;</td>
-				<td colspan="2" class="distance_addition">+ k</td>
-                <td rowspan="4" class="direction"><table>
+				<td rowspan="5" class="hole">&nbsp;&nbsp;</td>
+				<td colspan="2" class="comment">????</td>
+                <td rowspan="5" class="direction"><table>
 					<tr>
 						<td class="navi_ne">&nbsp;</td>
 						<td class="navi_n"></td>
@@ -265,11 +265,15 @@
                 </table></td>
 			</tr>
 			<tr>
-				<td colspan="2" class="comment">????</td>
+				<td colspan="2" class="distance_addition">+ k</td>
 			</tr>
 			<tr>
 				<td class="speed"><span class="speed_label">速</span>--</td>
 				<td class="speed"><span class="speed_label">速</span>--</td>
+			</tr>
+			<tr>
+				<td class="total_elapsed">-:-</td>
+				<td class="total_elapsed">-:-</td>
 			</tr>
 			<tr>
 				<td class="total_distance">--k</td>
@@ -279,9 +283,9 @@
 			<% else %>
 			<table class="tag">
 			<tr>
-				<td rowspan="4" class="hole">&nbsp;&nbsp;</td>
-				<td colspan="2" class="distance_addition"><%= node_distance_addition %></td>
-				<td rowspan="4" class="direction"><table class="navi_table">
+				<td rowspan="5" class="hole">&nbsp;&nbsp;</td>
+				<td colspan="2" class="comment"><%= node.info.name %><%= comment %></td>
+				<td rowspan="5" class="direction"><table class="navi_table">
 					<tr>
 						<td class="navi_ne"><%= node.info.road["NE"] %></td>
 						<td class="navi_n"><%= node.info.road["N"] %></td>
@@ -300,11 +304,15 @@
 				</table></td>
 			</tr>
 			<tr>
-				<td colspan="2" class="comment"><%= node.info.name %><%= comment %></td>
+				<td colspan="2" class="distance_addition"><%= node_distance_addition %></td>
 			</tr>
 			<tr>
 				<td class="speed"><span class="speed_label">速</span><%= node.info.target_speed %></td>
 				<td class="speed"><span class="speed_label">速</span><%= node.info.limit_speed %></td>
+			</tr>
+			<tr>
+				<td class="total_elapsed">+<%= time_addition %></td>
+				<td class="total_elapsed">+<%= target_time_addition %></td>
 			</tr>
 			<tr>
 				<td class="total_distance"><%= pc_total_distance %>k</td>
