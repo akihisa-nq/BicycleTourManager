@@ -87,6 +87,8 @@ module BTM
 		end
 
 		def each_page(&block)
+			@generated = {}
+
 			@plan.routes.each do |route|
 				@route = route
 				@pc.reset(@node)
@@ -110,8 +112,6 @@ module BTM
 				end
 				page_max += 1 if count > 0
 
-				@generated = {}
-
 				@page_node = []
 				@route.path_list.each do |page|
 					next if page.steps.count == 0
@@ -134,8 +134,6 @@ module BTM
 					block.call(@route, @page_number, page_max)
 					@page_node.clear
 				end
-
-				@generated = {}
 			end
 		end
 
