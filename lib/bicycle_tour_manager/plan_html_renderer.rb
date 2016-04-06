@@ -66,8 +66,12 @@ module BTM
 			format_time(@context.pc.total_target_time) + "/" + format_time(@context.pc.total_time)
 		end
 
-		def total_elapsed
-			format_time(@context.node.time_target) + "/" + format_time(@context.node.time)
+		def total_elapsed_target
+			format_time(@context.node.time_target)
+		end
+
+		def total_elapsed_limit
+			format_time(@context.node.time)
 		end
 
 		def node_distance_addition

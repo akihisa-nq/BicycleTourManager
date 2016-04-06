@@ -76,6 +76,39 @@
 			height : <%= height %>;
 		}
 
+        table.tag > tbody > tr > td.distance_addition
+		{
+			font-size : <%= very_large %>;
+		}
+
+        table.tag > tbody > tr > td.total_elapsed
+		{
+			font-weight : bold;
+			width : <%= dis_size %>;
+		}
+
+        table.tag > tbody > tr > td.pc_elapsed
+		{
+			font-weight : bold;
+			width : <%= dis_size %>;
+		}
+
+        table.tag > tbody > tr > td.comment
+		{
+			font-size : <%= medium %>;
+		}
+
+        table.tag > tbody > tr > td.speed_label
+		{
+			font-size : <%= medium %>;
+		}
+
+		td.hole
+		{
+			font-size : 0px;
+			width : <%= scaled(20); %>;
+		}
+
         table.navi_table > tbody > tr > td
         {
 			font-size : <%= medium %>;
@@ -177,38 +210,6 @@
 			height : <%= dir_box_size %>;
 		}
 
-		.total_direction
-		{
-			width : <%= dis_size %>;
-		}
-
-		.other_directions
-		{
-			font-size : <%= medium %>;
-		}
-
-		.total_elapsed
-		{
-			font-weight : bold;
-			width : <%= dis_size %>;
-		}
-
-		.pc_elapsed
-		{
-			font-weight : bold;
-			width : <%= dis_size %>;
-		}
-
-		.comment
-		{
-			font-size : <%= medium %>;
-		}
-
-		.speed_label
-		{
-			font-size : <%= medium %>;
-		}
-
 		.alert
 		{
 			font-weight : bold;
@@ -223,17 +224,6 @@
 		{
 			width : 100%;
 			height : auto;
-		}
-
-		.distance_addition
-		{
-			font-size : <%= very_large %>;
-		}
-
-		td.hole
-		{
-			font-size : 0px;
-			width : <%= scaled(20); %>;
 		}
 		</style>
 	</head>
@@ -254,9 +244,9 @@
 			<% if @context.enable_hide? && node.info.hide? %>
 			<table class="tag">
 			<tr>
-				<td rowspan="6" class="hole">&nbsp;&nbsp;</td>
+				<td rowspan="4" class="hole">&nbsp;&nbsp;</td>
 				<td colspan="2" class="distance_addition">+ k</td>
-                <td rowspan="6" class="direction"><table>
+                <td rowspan="4" class="direction"><table>
 					<tr>
 						<td class="navi_ne">&nbsp;</td>
 						<td class="navi_n"></td>
@@ -282,24 +272,16 @@
 				<td class="speed"><span class="speed_label">速</span>--</td>
 			</tr>
 			<tr>
-				<td class="pc_elapsed">-:-</td>
-				<td class="pc_elapsed">-:-</td>
-			</tr>
-			<tr>
 				<td class="total_distance">--k</td>
-				<td class="total_distance">--k</td>
-			</tr>
-			<tr>
-				<td class="total_elapsed">-:-</td>
-				<td class="total_elapsed">-:-</td>
+				<td class="total_elapsed">--k</td>
 			</tr>
 			</table>
 			<% else %>
 			<table class="tag">
 			<tr>
-				<td rowspan="6" class="hole">&nbsp;&nbsp;</td>
+				<td rowspan="4" class="hole">&nbsp;&nbsp;</td>
 				<td colspan="2" class="distance_addition"><%= node_distance_addition %></td>
-				<td rowspan="6" class="direction"><table class="navi_table">
+				<td rowspan="4" class="direction"><table class="navi_table">
 					<tr>
 						<td class="navi_ne"><%= node.info.road["NE"] %></td>
 						<td class="navi_n"><%= node.info.road["N"] %></td>
@@ -325,21 +307,19 @@
 				<td class="speed"><span class="speed_label">速</span><%= node.info.limit_speed %></td>
 			</tr>
 			<tr>
-				<td colspan="2" class="pc_elapsed"><%= pc_total_elapsed %></td>
-			</tr>
-			<tr>
 				<td class="total_distance"><%= pc_total_distance %>k</td>
-				<td></td>
-			</tr>
-			<tr>
-				<td colspan="2" class="total_elapsed"><%= total_elapsed %></td>
+				<td><%= total_elapsed_limit %></td>
 			</tr>
 			</table>
 			<% end %>
 			<% end  %>
 
 			<% @context.update_resource_status do %>
-			<div class="resource">
+			<table class="tag">
+			<tr>
+				<td class="hole">&nbsp;&nbsp;</td>
+				<td><%= total_distance %>k</td>
+				<td><div class="resource">
 				<% @context.res_context.each do |r| %>
 				<%= resource_status(r) %>
 				<% end %>
@@ -352,8 +332,9 @@
 				<% @context.res_context.each do |r| %>
 				<%= resources_left(r) %>
 				<% end %>
-				<%= total_distance %>k
-			</div>
+				</div></td>
+			</tr>
+			</table>
 			<% end %>
 		</div></td>
 		<% if (total % 4) == 3 %>
