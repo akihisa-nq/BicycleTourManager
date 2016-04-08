@@ -37,14 +37,14 @@ EOS
 			@hide = false
 		end
 
-		def road_nw; @road["NW"]; end
-		def road_n; @road["N"]; end
-		def road_ne; @road["NE"]; end
-		def road_w; @road["W"]; end
-		def road_e; @road["E"]; end
-		def road_sw; @road["SW"]; end
-		def road_s; @road["S"]; end
-		def road_se; @road["SE"]; end
+		def road_nw; @road["NW"] || @road["nw"]; end
+		def road_n; @road["N"] || @road["n"]; end
+		def road_ne; @road["NE"] || @road["ne"]; end
+		def road_w; @road["W"] || @road["w"]; end
+		def road_e; @road["E"] || @road["e"]; end
+		def road_sw; @road["SW"] || @road["sw"]; end
+		def road_s; @road["S"] || @road["s"]; end
+		def road_se; @road["SE"] || @road["se"]; end
 
 		def next_road
 			@dest.nil? ? "" : @road[@dest]
