@@ -247,8 +247,8 @@
 		<tr>
 		<% end %>
 		<td><div class="page">
-			<div class="hole_up">‚óã</div>
-			<div class="hole_down">‚óã</div>
+			<div class="hole_up">Åõ</div>
+			<div class="hole_down">Åõ</div>
 
 			<h1>PC<%= pc.index %> <%= i + 1 %>/<%= page_max %></h1>
 
@@ -280,8 +280,8 @@
 				<td colspan="2" class="distance_addition">+ k</td>
 			</tr>
 			<tr>
-				<td class="speed"><span class="speed_label">ÈÄü</span>--</td>
-				<td class="speed"><span class="speed_label">ÈÄü</span>--</td>
+				<td class="speed"><span class="speed_label">ë¨</span>--</td>
+				<td class="speed"><span class="speed_label">ë¨</span>--</td>
 			</tr>
 			<tr>
 				<td class="total_elapsed">-:-</td>
@@ -299,19 +299,19 @@
 				<td colspan="2" class="comment"><%= node.info.name %><%= comment %></td>
 				<td rowspan="5" class="direction"><table class="navi_table">
 					<tr>
-						<td class="navi_ne"><%= node.info.road["NE"] %></td>
-						<td class="navi_n"><%= node.info.road["N"] %></td>
-						<td class="navi_nw"><%= node.info.road["NW"] %></td>
+						<td class="navi_nw"><%= node.info.road_nw %></td>
+						<td class="navi_n"><%= node.info.road_n %></td>
+						<td class="navi_ne"><%= node.info.road_ne %></td>
 					</tr>
 					<tr>
-						<td class="navi_e"><%= node.info.road["E"] %></td>
+						<td class="navi_w"><%= node.info.road_w %></td>
 						<td><%= render_node %></td>
-						<td class="navi_w"><%= node.info.road["W"] %></td>
+						<td class="navi_e"><%= node.info.road_e %></td>
 					</tr>
 					<tr>
-						<td class="navi_se"><%= node.info.road["SE"] %></td>
-						<td class="navi_s"><%= node.info.road["S"] %></td>
-						<td class="navi_sw"><%= node.info.road["SW"] %></td>
+						<td class="navi_sw"><%= node.info.road_sw %></td>
+						<td class="navi_s"><%= node.info.road_s %></td>
+						<td class="navi_se"><%= node.info.road_se %></td>
 					</tr>
 				</table></td>
 			</tr>
@@ -319,8 +319,8 @@
 				<td colspan="2" class="distance_addition"><%= node_distance_addition %></td>
 			</tr>
 			<tr>
-				<td class="speed"><span class="speed_label">ÈÄü</span><%= node.info.target_speed %></td>
-				<td class="speed"><span class="speed_label">ÈÄü</span><%= node.info.limit_speed %></td>
+				<td class="speed"><span class="speed_label">ë¨</span><%= node.info.target_speed %></td>
+				<td class="speed"><span class="speed_label">ë¨</span><%= node.info.limit_speed %></td>
 			</tr>
 			<tr>
 				<td class="total_elapsed">+<%= time_addition %></td>
