@@ -37,14 +37,14 @@ EOS
 			@hide = false
 		end
 
-		def road_nw; parse_direction; @road["NW"]; end
-		def road_n; parse_direction; @road["N"]; end
-		def road_ne; parse_direction; @road["NE"]; end
-		def road_w; parse_direction; @road["W"]; end
-		def road_e; parse_direction; @road["E"]; end
-		def road_sw; parse_direction; @road["SW"]; end
-		def road_s; parse_direction; @road["S"]; end
-		def road_se; parse_direction; @road["SE"]; end
+		def road_nw; @road["NW"]; end
+		def road_n; @road["N"]; end
+		def road_ne; @road["NE"]; end
+		def road_w; @road["W"]; end
+		def road_e; @road["E"]; end
+		def road_sw; @road["SW"]; end
+		def road_s; @road["S"]; end
+		def road_se; @road["SE"]; end
 
 		def next_road
 			@dest.nil? ? "" : @road[@dest]
@@ -134,21 +134,21 @@ EOS
 
 			case diff
 			when 0
-				"Œã‚ë"
+				"å¾Œã‚"
 			when 1
-				"¶Œã"
+				"å·¦å¾Œ"
 			when 2
-				"¶Ü"
+				"å·¦æŠ˜"
 			when 3
-				"¶‘O"
+				"å·¦å‰"
 			when 4
-				"’¼i"
+				"ç›´é€²"
 			when 5
-				"‰E‘O"
+				"å³å‰"
 			when 6
-				"‰EÜ"
+				"å³æŠ˜"
 			when 7
-				"‰EŒã"
+				"å³å¾Œ"
 			end
 		end
 	end
@@ -232,7 +232,7 @@ EOS
 		def self.check_peak(tmp)
 			return if tmp.length == 0
 
-			# ‹É¬/‹É‘å‚ğƒ}[ƒN‚·‚é
+			# æ¥µå°/æ¥µå¤§ã‚’ãƒãƒ¼ã‚¯ã™ã‚‹
 			tmp[0].min_max = :mark
 			tmp[-1].min_max = :mark
 
@@ -244,19 +244,19 @@ EOS
 				check_min = true
 				check_max = true
 
-				# Å¬’lƒ`ƒFƒbƒN
+				# æœ€å°å€¤ãƒã‚§ãƒƒã‚¯
 				prev_min = i if tmp[prev_min].ele > current.ele
 
-				# ˆÈ‘O‚Ì“_
+				# ä»¥å‰ã®ç‚¹
 				tmp[0..(i - 1)].reverse.each do |t|
-					# “¯‚¶‚“x‚ª‚ ‚Á‚½ê‡‚ÍAŒã‚Ì“_‚ğ—Dæ‚·‚é
+					# åŒã˜é«˜åº¦ãŒã‚ã£ãŸå ´åˆã¯ã€å¾Œã®ç‚¹ã‚’å„ªå…ˆã™ã‚‹
 					check_min = false if t.ele < current.ele
 					check_max = false if t.ele > current.ele
 					break unless (check_min || check_max) && current.distance_on_path(t) < PEAK_SEARCH_DISTANCE
 				end
 				next unless check_min || check_max
 
-				# ˆÈŒã‚Ì“_
+				# ä»¥å¾Œã®ç‚¹
 				tmp[(i+1)..(tmp.length - 1)].each do |t|
 					check_min = false if t.ele <= current.ele
 					check_max = false if t.ele >= current.ele
@@ -264,11 +264,11 @@ EOS
 				end
 				next unless check_min || check_max
 
-				# ƒ}[ƒN‚·‚é
+				# ãƒãƒ¼ã‚¯ã™ã‚‹
 				if check_min
 					if tmp[prev].min_max == :mark_min
 						if tmp[prev].ele < current.ele
-							# ƒ}[ƒN•s—v
+							# ãƒãƒ¼ã‚¯ä¸è¦
 						else
 							tmp[prev].min_max = nil
 							current.min_max = :mark_min
@@ -363,7 +363,7 @@ EOS
 			@mark_distance_from_start
 		end
 
-		# ‚±‚ÌŠÖ”‚ğŒÄ‚Ô‘O‚É start, end, way_points ‚ğİ’è‚·‚é‚±‚Æ
+		# ã“ã®é–¢æ•°ã‚’å‘¼ã¶å‰ã« start, end, way_points ã‚’è¨­å®šã™ã‚‹ã“ã¨
 		def search_route(route_cache, elevation_cache)
 			param = {
 				"origin" => @start.pack,
@@ -373,7 +373,7 @@ EOS
 			}
 			param["waypoints"] = @way_points.map {|i| i.pack }.join("|") if @way_points.length > 0
 
-			# ƒ‹[ƒg’TõŒ‹‰Ê‚àƒLƒƒƒbƒVƒ…‚µ‚Ä‚¨‚­
+			# ãƒ«ãƒ¼ãƒˆæ¢ç´¢çµæœã‚‚ã‚­ãƒ£ãƒƒã‚·ãƒ¥ã—ã¦ãŠã
 			key = "S:#{param["origin"]}, D:#{param["destination"]}, W:#{param["waypoints"]}"
 			data = route_cache.cache(key) do
 				request = "http://maps.googleapis.com/maps/api/directions/json"
@@ -388,7 +388,7 @@ EOS
 				raise Exception.new("#{key} : #{data}")
 			end
 
-			# ‚“xî•ñ‚ÍƒLƒƒƒbƒVƒ…‚µ‚Ä‚¨‚­
+			# é«˜åº¦æƒ…å ±ã¯ã‚­ãƒ£ãƒƒã‚·ãƒ¥ã—ã¦ãŠã
 			if route_result && route_result["overview_polyline"] && route_result["overview_polyline"]["points"]
 				fetch_elevation_internal(0, route_result["overview_polyline"]["points"], elevation_cache)
 			else
