@@ -236,9 +236,12 @@
 		</style>
 	</head>
 	<body>
-		<table class="sheet">
+		<div>
 		<% total = 0 %>
 		<% @context.each_page do |pc, i, page_max| %>
+		<% if (total % 8) == 0 then %>
+		<table class="sheet">
+		<% end %>
 		<% if (total % 4) == 0 then %>
 		<tr>
 		<% end %>
@@ -356,6 +359,9 @@
 		<% if (total % 4) == 3 %>
 		</tr>
 		<% end %>
+		<% if (total % 8) == 7 %>
+		</table>
+		<% end %>
 		<% total += 1 %>
 		<% end %>
 		<% (4 - ((total - 1) % 4 + 1)).times do %>
@@ -369,7 +375,10 @@
 			<td><div class="page"></div></td>
 		</tr>
 		<% end %>
+		<% if (total % 8) != 0 %>
 		</table>
+		<% end %>
+		</div>
 		<table class="graph">
 		<% ((@context.route_count + 1) / 2).times do |i| %>
 		<tr>
