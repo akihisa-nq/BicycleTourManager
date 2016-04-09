@@ -362,15 +362,13 @@
 		<% end %>
 		<% total += 1 %>
 		<% end %>
-		<% if (total % 4) != 3 %>
-		<% if (total % 8) <= 3 %>
-		<% (4 - (total % 8)).times do %>
+		<% (4 - ((total - 1) % 4 + 1)).times do %>
 			<td><div class="page"></div></td>
 		<% end %>
-		<% end %>
+		<% if (total % 4) != 0 %>
 		</tr>
 		<% end %>
-		<% if (total % 8) <= 3 %>
+		<% if ((total - 1) % 8) <= 4 %>
 		<tr>
 			<td><div class="page"></div></td>
 		</tr>
