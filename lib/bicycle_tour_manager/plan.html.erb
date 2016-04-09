@@ -38,6 +38,13 @@
 			height : 100%;
 			border-collapse : separate;
 			border-spacing : <%= scaled(8) %>;
+			page-break-after : always;
+			page-break-inside : avoid;
+		}
+
+		table.sheet:last-child
+		{
+			page-break-after : auto;
 		}
 
         table.sheet > tbody > tr > td
@@ -151,17 +158,6 @@
         {
             vertical-align : middle;
         }
-
-		.sheet
-		{
-			page-break-after : always;
-			page-break-inside : avoid;
-		}
-
-		.sheet:last-child
-		{
-			page-break-after : auto;
-		}
 
 		.page
 		{
