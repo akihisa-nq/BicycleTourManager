@@ -76,7 +76,7 @@ module BTM
 		end
 
 		def target_time_addition
-			"%02d:%02d" % [ @context.time_addition / 3600, (@context.target_time_addition % 3600) / 60 ]
+			"%02d:%02d" % [ @context.target_time_addition / 3600, (@context.target_time_addition % 3600) / 60 ]
 		end
 
 		def node_distance_addition
