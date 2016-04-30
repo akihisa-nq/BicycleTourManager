@@ -19,16 +19,10 @@ module BTM
 
 	class GoogleMapUriParser
 		def initialize(geocode_cache)
-			@geocode_cache = geocode_cache
 		end
 
 		def parse_uri(uri)
-			parsed = nil
-			if uri.include?("/dir/")
-				parsed = parse_uri_new(uri)
-			else
-				parsed = parse_uri_old(uri)
-			end
+			parsed = parse_uri_new(uri)
 			create_routes(parsed)
 		end
 
@@ -60,25 +54,6 @@ module BTM
 			route
 		end
 
-		def parse_uri_old(uri)
-			parsed_uri = URI.parse(uri)
-			data = Hash[*parsed_uri.query.split(/[&=]/)]
-			uri = GoogleMapUri.new
-
-			uri.start = URI.decode(data["saddr"])
-			uri.dest = URI.decode(data["daddr"]).split("+to:")
-
-			if data.include?("via")
-				uri.via = data["via"].split(",").map{|i| i.to_i } 
-			else
-				uri.via = []
-			end
-
-			uri.points = URI.decode(data["geocode"]).split(";").map {|i| parse_geocode(i) }
-
-			uri
-		end
-
 		def parse_uri_new(uri)
 			obj = GoogleMapUri.new
 
@@ -91,7 +66,7 @@ module BTM
 
 			if /data=(.*)\?/ =~ uri
 				data = $1
-				current = 0
+				current = 1
 
 				lon = 0.0
 				data.split("!").each do |r|
@@ -100,48 +75,31 @@ module BTM
 						lon = $1.to_f
 					when /^2d(.*)/
 						pt = Point.new( $1.to_f, lon )
-						dis = obj.points[current].distance(pt)
 
-						while current + 2 < obj.points.length
-							cur = obj.points[current + 1].distance(pt)
-							if dis < cur
-								break
-							end
+						if current + 1 < obj.points.size
+							while current + 1 < obj.points.size
+								# A -> pt -> B -> C
+								dis_1 = obj.points[current - 1].distance(pt) + obj.points[current].distance(pt) \
+									+ obj.points[current].distance(obj.points[current + 1])
+								# A -> B -> pt -> C
+								dis_2 = obj.points[current - 1].distance(obj.points[current]) \
+									+ obj.points[current].distance(pt) + obj.points[current + 1].distance(pt)
+								if dis_1 < dis_2
+									break
+								end
 
-							dis = cur
-							current += 1
-						end
-
-						if current >= 1
-							dis_1 = obj.points[current - 1].distance(pt) + obj.points[current].distance(obj.points[current + 1])
-							dis_2 = obj.points[current + 1].distance(pt) + obj.points[current].distance(obj.points[current - 1])
-							if dis_1 < dis_2
-								current -= 1
+								current += 1
 							end
 						end
 
-						current += 1
 						obj.points.insert(current, pt)
 						obj.via << current
+						current += 1
 					end
 				end
 			end
 
 			obj
-		end
-
-		def parse_geocode(geocode)
-			data = @geocode_cache.cache(geocode) do
-				ret = Http::fetch_https(%Q|https://maps.google.co.jp/maps?saddr=1&daddr=2&geocode=#{geocode}%3B#{geocode}&dirflg=w|)
-
-				if ret =~ /latlng:{lat:([\d\.]+),lng:([\d\.]+)}/
-					BTM.factory.point($2.to_f, $1.to_f)
-				else
-					BTM.factory.point(0.0, 0.0)
-				end
-			end
-
-			Point.new(data.y, data.x)
 		end
 	end
 end
