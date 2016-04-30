@@ -3,14 +3,12 @@
         <meta charset="UTF-8" /> 
 		<style>
 		<%
-		very_small = scaled(5)
 		small = scaled(8)
-		medium = scaled(10)
-		large = scaled(12)
-		very_large = scaled(18)
+		medium = scaled(14)
+		large = scaled(18)
 
         navi_width = scaled(40)
-        navi_height = scaled(16)
+        navi_height = scaled(22)
 		dir_width = scaled(48 + 40 * 2)
 		dir_height = scaled(48 + 16 * 2)
         dir_box_size = scaled(48)
@@ -18,6 +16,11 @@
 
 		height = scaled(16)
 		%>
+
+		body {
+			margin : 0px;
+			padding : 0px;
+		}
 
 		table.graph
 		{
@@ -36,8 +39,7 @@
 		{
 			width : 100%;
 			height : 100%;
-			border-collapse : separate;
-			border-spacing : <%= scaled(8) %>;
+			border-collapse : collapse;
 			page-break-after : always;
 			page-break-inside : avoid;
 		}
@@ -55,25 +57,10 @@
 			border : black 1px solid;
 		}
 
-		div.hole_up
-		{
-			font-size : <%= small %>;
-			position : absolute;
-			left : <%= scaled(7.5) %>;
-			top : 100px;
-		}
-
-		div.hole_down
-		{
-			font-size : <%= small %>;
-			position : absolute;
-			left : <%= scaled(7.5) %>;
-			bottom : 100px;
-		}
-
 		h1
 		{
-			font-size : <%= large %>;
+			font-size : <%= medium %>;
+			line-height : <%= medium %>;
 			text-align : center;
 			margin-bottom : 0em;
 		}
@@ -81,15 +68,14 @@
 		table.tag
 		{	
 			width : 100%;
-			border : 1px solid black;
 			border-collapse : collapse;
-			margin-bottom : 1%;
 			float : left;
 		}
 
         table.tag > tbody > tr > td
 		{
 			font-size : <%= medium %>;
+			line-height : <%= medium %>;
 			padding : 0.1em;
 			border : 1px solid black;
 			height : <%= height %>;
@@ -97,13 +83,15 @@
 
         table.tag > tbody > tr > td.distance_addition
 		{
-			font-size : <%= very_large %>;
+			font-size : <%= large %>;
+			line-height : <%= large %>;
 		}
 
         table.tag > tbody > tr > td.total_elapsed
 		{
 			font-weight : bold;
-			width : <%= dis_size %>;
+			font-size : <%= large %>;
+			line-height : <%= large %>;
 		}
 
         table.tag > tbody > tr > td.pc_elapsed
@@ -114,23 +102,22 @@
 
         table.tag > tbody > tr > td.comment
 		{
-			font-size : <%= large %>;
+			font-size : <%= medium %>;
+			line-height : <%= medium %>;
 		}
 
         table.tag > tbody > tr > td.speed_label
 		{
 			font-size : <%= medium %>;
-		}
-
-		td.hole
-		{
-			font-size : 0px;
-			width : <%= scaled(20); %>;
+			line-height : <%= medium %>;
 		}
 
         table.navi_table > tbody > tr > td
         {
-			font-size : <%= medium %>;
+			font-size : <%= large %>;
+			line-height : <%= large %>;
+			margin : 0px;
+			padding : 0px;
         }
 
         td.navi_ne, td.navi_nw, td.navi_sw, td.navi_se
@@ -173,13 +160,7 @@
 		{
 			clear : both;
 			font-size : <%= small %>;
-		}
-
-		.next
-		{
-			float : left;
-			font-size : <%= very_small %>;
-			width : 1%;
+			line-height : <%= small %>;
 		}
 
 		.pc_distance
@@ -246,16 +227,12 @@
 		<tr>
 		<% end %>
 		<td><div class="page">
-			<div class="hole_up">○</div>
-			<div class="hole_down">○</div>
-
 			<h1>PC<%= pc.index %> <%= i + 1 %>/<%= page_max %></h1>
 
 			<% @context.each_node do |node| %>
 			<% if @context.enable_hide? && node.info.hide? %>
 			<table class="tag">
 			<tr>
-				<td rowspan="5" class="hole">&nbsp;&nbsp;</td>
 				<td colspan="2" class="comment">????</td>
                 <td rowspan="5" class="direction"><table>
 					<tr>
@@ -283,8 +260,7 @@
 				<td class="speed"><span class="speed_label">速</span>--</td>
 			</tr>
 			<tr>
-				<td class="total_elapsed">-:-</td>
-				<td class="total_elapsed">-:-</td>
+				<td colspan="2" class="total_elapsed">+-:- - -:-</td>
 			</tr>
 			<tr>
 				<td class="total_distance">--k</td>
@@ -294,7 +270,6 @@
 			<% else %>
 			<table class="tag">
 			<tr>
-				<td rowspan="5" class="hole">&nbsp;&nbsp;</td>
 				<td colspan="2" class="comment"><%= node.info.name %><%= comment %></td>
 				<td rowspan="5" class="direction"><table class="navi_table">
 					<tr>
@@ -322,8 +297,8 @@
 				<td class="speed"><span class="speed_label">速</span><%= node.info.limit_speed %></td>
 			</tr>
 			<tr>
-				<td class="total_elapsed">+<%= time_addition %></td>
-				<td class="total_elapsed">+<%= target_time_addition %></td>
+				<td class="total_elapsed"><%= target_time_addition %></td>
+				<td class="total_elapsed"><%= time_addition %></td>
 			</tr>
 			<tr>
 				<td class="total_distance"><%= pc_total_distance %>k</td>
@@ -336,7 +311,6 @@
 			<% @context.update_resource_status do %>
 			<table class="tag">
 			<tr>
-				<td class="hole">&nbsp;&nbsp;</td>
 				<td><%= total_distance %>k</td>
 				<td><div class="resource">
 				<% @context.res_context.each do |r| %>
