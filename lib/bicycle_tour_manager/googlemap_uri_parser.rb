@@ -59,41 +59,37 @@ module BTM
 
 			if /\/dir\/(.*)\/@/ =~ uri
 				obj.points = $1.split("/").map do |i|
-					p = i.split(",")
-					Point.new(p[0].to_f, p[1].to_f)
+					pt = i.split(",").map {|s| s.to_f }
+					Point.new(*pt)
 				end
 			end
 
 			if /data=(.*)\?/ =~ uri
-				data = $1
+				data = $1[6..-1]
 				current = 1
 
-				lon = 0.0
-				data.split("!").each do |r|
-					case r
-					when /^1d(.*)/
-						lon = $1.to_f
-					when /^2d(.*)/
-						pt = Point.new( $1.to_f, lon )
+				order = data.scan(/!1m\d+/)
+				if order.count > 0
+					order.delete_at(order.count - 1)
+					order = order.delete_if {|a| a == "!1m2" }
 
-						if current + 1 < obj.points.size
-							while current + 1 < obj.points.size
-								# A -> pt -> B -> C
-								dis_1 = obj.points[current - 1].distance(pt) + obj.points[current].distance(pt) \
-									+ obj.points[current].distance(obj.points[current + 1])
-								# A -> B -> pt -> C
-								dis_2 = obj.points[current - 1].distance(obj.points[current]) \
-									+ obj.points[current].distance(pt) + obj.points[current + 1].distance(pt)
-								if dis_1 < dis_2
-									break
-								end
+					via = []
+					data.scan(/!1d-?\d+.\d+!2d-?\d+.\d+/) do |v|
+						g = v[3..-1].split("!2d" ).map {|s| s.to_f }.reverse
+						via << Point.new( *g )
+					end
 
-								current += 1
-							end
+					via_index = 0
+					order.each do |step|
+						iter = step[3..-1].to_i / 5
+						iter.times do |i|
+							obj.points.insert(current, via[via_index])
+							via_index += 1
+
+							obj.via << current
+							current += 1
 						end
 
-						obj.points.insert(current, pt)
-						obj.via << current
 						current += 1
 					end
 				end
