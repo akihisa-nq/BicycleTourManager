@@ -7,8 +7,9 @@ require "bicycle_tour_manager"
 
 INPUT_FILE = ARGV.shift
 INPUT_DIR = File.dirname(INPUT_FILE)
+OUTPUT_FILE = ARGV.shift || "#{INPUT_DIR}/result.html"
 
 plan = BTM::PlanStream.read(INPUT_FILE)
 
 renderer = BTM::PlanHtmlRenderer.new(nil, {})
-renderer.render(plan, "#{INPUT_DIR}/result.html");
+renderer.render(plan, OUTPUT_FILE)

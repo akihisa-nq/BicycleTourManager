@@ -44,6 +44,8 @@ module BTM
 							case s.downcase
 							when "hide"
 								current.info.hide = true
+							when "pass"
+								current.info.pass = true
 							end
 						end
 

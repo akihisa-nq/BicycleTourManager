@@ -187,7 +187,9 @@ module BTM
 
 			@pc.increment(@time_addition, @target_time_addition)
 
-			@node = node
+			if node.info && ! node.info.pass
+				@node = node
+			end
 		end
 	end
 

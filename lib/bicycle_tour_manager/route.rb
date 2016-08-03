@@ -35,6 +35,7 @@ EOS
 			@rest_time = 0.0
 			@page_break = false
 			@hide = false
+			@pass = false
 		end
 
 		def road_nw; @road["NW"] || @road["nw"]; end
@@ -101,7 +102,7 @@ EOS
 			@hide
 		end
 
-		attr_accessor :text, :name, :road, :orig, :dest, :limit_speed, :target_speed, :rest_time, :page_break, :hide
+		attr_accessor :text, :name, :road, :orig, :dest, :limit_speed, :target_speed, :rest_time, :page_break, :hide, :pass
 
 		private
 

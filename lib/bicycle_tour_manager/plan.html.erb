@@ -230,7 +230,36 @@
 			<h1>PC<%= pc.index %> <%= i + 1 %>/<%= page_max %></h1>
 
 			<% @context.each_node do |node| %>
-			<% if @context.enable_hide? && node.info.hide? %>
+			<% hide = @context.enable_hide? && node.info.hide? %>
+			<% if node.info.pass %>
+			<% if hide %>
+			<table class="tag">
+			<tr>
+				<td colspan="2" class="comment">????</td>
+				<td class="speed"><span class="speed_label">速</span>--</td>
+				<td class="speed"><span class="speed_label">速</span>--</td>
+			</tr>
+			<tr>
+				<td colspan="2" class="distance_addition">+ k</td>
+				<td colspan="2" class="total_elapsed">+-:- - -:-</td>
+			</tr>
+			</table>
+			<% else %>
+			<table class="tag">
+			<tr>
+				<td colspan="2" class="comment"><%= node.info.name %><%= comment %></td>
+				<td class="speed"><span class="speed_label">速</span><%= node.info.target_speed %></td>
+				<td class="speed"><span class="speed_label">速</span><%= node.info.limit_speed %></td>
+			</tr>
+			<tr>
+				<td colspan="2" class="distance_addition"><%= node_distance_addition %></td>
+				<td class="total_elapsed"><%= target_time_addition %></td>
+				<td class="total_elapsed"><%= time_addition %></td>
+			</tr>
+			</table>
+			<% end %>
+			<% else %>
+			<% if hide %>
 			<table class="tag">
 			<tr>
 				<td colspan="2" class="comment">????</td>
@@ -305,8 +334,9 @@
 				<td><%= total_elapsed_limit %></td>
 			</tr>
 			</table>
-			<% end %>
-			<% end  %>
+			<% end # hide %>
+			<% end # pass %>
+			<% end # each_node %>
 
 			<% @context.update_resource_status do %>
 			<table class="tag">
