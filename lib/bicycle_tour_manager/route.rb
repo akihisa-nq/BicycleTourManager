@@ -25,6 +25,15 @@ EOS
 			)
 	end
 
+	class UpHill
+		def initialize(grad, distance)
+			@grad = grad
+			@distance = distance
+		end
+
+		attr_reader :grad, :distance
+	end
+
 	class NodeInfo
 		def initialize
 			@text = ""
@@ -36,6 +45,7 @@ EOS
 			@page_break = false
 			@hide = false
 			@pass = false
+			@uphills = []
 		end
 
 		def road_nw; @road["NW"] || @road["nw"]; end
@@ -103,6 +113,7 @@ EOS
 		end
 
 		attr_accessor :text, :name, :road, :orig, :dest, :limit_speed, :target_speed, :rest_time, :page_break, :hide, :pass
+		attr_reader :uphills
 
 		private
 
@@ -308,7 +319,7 @@ EOS
 				a = (tmp[j].ele - tmp[i].ele) / diff_dis
 				b = tmp[i].ele - a * tmp[i].distance_from_start
 
-				if tmp[j].distance_from_start - tmp[i].distance_from_start > 1.0
+				if diff_dis > 1.0
 					data = 0
 					index = 0
 
@@ -327,7 +338,7 @@ EOS
 					end
 				end
 
-				break [ GradientData.new( tmp[i], tmp[j], (a / 10.0).to_i ) ]
+				break [ GradientData.new( tmp[i], tmp[j], (a / 10.0).to_i, diff_dis ) ]
 			end
 
 			prev = 0
@@ -639,7 +650,11 @@ EOS
 			offset = 0.0
 			@routes.each do |route|
 				route.check_distance_from_start(offset)
-				offset = route.path_list.select {|p| p.steps.count > 0 }.last.steps.last.distance_from_start
+
+				path_list = route.path_list.select {|p| p.steps.count > 0 }
+				if path_list.count > 0
+					offset = path_list.last.steps.last.distance_from_start
+				end
 			end
 		end
 
@@ -648,13 +663,14 @@ EOS
 	end
 
 	class GradientData
-		def initialize(start, end_, grad)
+		def initialize(start, end_, grad, dis)
 			@start = start
 			@end = end_
 			@grad = grad
+			@distance = dis
 		end
 
-		attr_accessor :start, :end, :grad
+		attr_accessor :start, :end, :grad, :distance
 	end
 
 	class Resource

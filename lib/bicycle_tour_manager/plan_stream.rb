@@ -87,6 +87,13 @@ module BTM
 						current.position = [$1.to_f, $2.to_f]
 						current.ele = $3.to_f
 
+					when /^uphills: (.*)/
+						$1.split(",").each do |item|
+							if item =~ /\[\s*([^,\s]*)\s*,\s*([^,\s]*)\s*\]/
+								current.info.uphills << UpHill.new($1.to_i, $2.to_f)
+							end
+						end
+
 					when /^\s+$/
 						if need_add
 							plan.routes.last.path_list.last.steps << current
@@ -135,10 +142,14 @@ EOF
 						node = path.steps.last
 						count += 1
 
+						Path.check_peak(path.steps)
+						grad = Path.check_gradient(path.steps).select {|g| g.grad >= 3 }
+
 						file << <<EOF
 ★#{j + 2}
 +#{path.distance}km
 position: #{node.lat}, #{node.lon}, #{node.ele}
+uphills: #{grad.map {|g| "[ #{g.grad}, #{g.distance} ]" }.join(", ")}
 
 EOF
 						if (count % 8) == 0

@@ -15,6 +15,7 @@ PLOT_ELEVATION_MAX = 1100
 
 INPUT_FILE = ARGV.shift
 INPUT_DIR = File.dirname(INPUT_FILE)
+OUTPUT_FILE = ARGV.shift || "#{INPUT_DIR}/route_template.txt"
 
 geo_cache = BTM::PStoreCache.new("#{CACHE_DIR}/cache_geocode.db")
 gmap_uri_parser = BTM::GoogleMapUriParser.new(geo_cache)
@@ -36,6 +37,7 @@ File.open(INPUT_FILE, "r:utf-8") do |file|
 	end
 end
 tour.sort!
+tour.check_distance_from_start
 
 plotter = BTM::AltitudePloter.new(GNUPLOT, INPUT_DIR)
 plotter.elevation_max = PLOT_ELEVATION_MAX
@@ -47,5 +49,5 @@ tour.routes.each do |route|
 end
 
 BTM::GpxStream.write_routes("#{INPUT_DIR}/route.gpx", tour)
-BTM::PlanStream.create_from_tour("#{INPUT_DIR}/route_template.txt", tour)
+BTM::PlanStream.create_from_tour(OUTPUT_FILE, tour)
 
