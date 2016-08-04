@@ -189,7 +189,7 @@ EOS
 		end
 
 		def lat=(val)
-			@point_geos.y = val
+			@point_geos = BTM.factory.point(lon, val)
 		end
 
 		def lon
@@ -197,7 +197,11 @@ EOS
 		end
 
 		def lon=(val)
-			@point_geos.x = val
+			@point_geos = BTM.factory.point(val, lat)
+		end
+
+		def position=(pos)
+			@point_geos = BTM.factory.point(pos[1], pos[0])
 		end
 
 		def distance(pt)

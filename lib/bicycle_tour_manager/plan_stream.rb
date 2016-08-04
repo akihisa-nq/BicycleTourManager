@@ -83,6 +83,10 @@ module BTM
 						current.distance_from_start = total_distance
 						need_add = true
 
+					when /^position:\s*([^,\s]+)\s*,\s*([^,\s]+)\s*,\s*([^,\s]+)/
+						current.position = [$1.to_f, $2.to_f]
+						current.ele = $3.to_f
+
 					when /^\s+$/
 						if need_add
 							plan.routes.last.path_list.last.steps << current
@@ -126,13 +130,15 @@ module BTM
 
 EOF
 
-				tour.routes.each do |pc|
-					pc.path_list.each.with_index do |route, j|
+				tour.routes.each do |route|
+					route.path_list.each.with_index do |path, j|
+						node = path.steps.last
 						count += 1
 
 						file << <<EOF
 ★#{j + 2}
-+#{route.distance}km
++#{path.distance}km
+position: #{node.lat}, #{node.lon}, #{node.ele}
 
 EOF
 						if (count % 8) == 0
@@ -149,7 +155,7 @@ EOF
 休み
 +0.25h
 
--- PC#{pc.index} --
+-- PC#{route.index} --
 
 EOF
 				end

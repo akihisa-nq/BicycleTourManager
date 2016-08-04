@@ -252,7 +252,7 @@
 				<td class="speed"><span class="speed_label">速</span><%= node.info.limit_speed %></td>
 			</tr>
 			<tr>
-				<td colspan="2" class="distance_addition"><%= node_distance_addition %></td>
+				<td colspan="2" class="distance_addition"><%= node_distance_addition %>/<%= node.ele.to_i %>m</td>
 				<td class="total_elapsed"><%= target_time_addition %></td>
 				<td class="total_elapsed"><%= time_addition %></td>
 			</tr>
@@ -319,7 +319,7 @@
 				</table></td>
 			</tr>
 			<tr>
-				<td colspan="2" class="distance_addition"><%= node_distance_addition %></td>
+				<td colspan="2" class="distance_addition"><%= node_distance_addition %>/<%= node.ele.to_i %>m</td>
 			</tr>
 			<tr>
 				<td class="speed"><span class="speed_label">速</span><%= node.info.target_speed %></td>

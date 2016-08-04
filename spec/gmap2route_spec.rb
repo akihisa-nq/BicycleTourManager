@@ -17,6 +17,7 @@ describe "gmap2route" do
 
 		result_files.each do |r|
 			expect(File.exist?(r)).to eq true
+			expect(File.read(r)).to eq File.read(File.join(File.dirname(__FILE__), "route_ans.txt"))
 		end
 	end
 end
