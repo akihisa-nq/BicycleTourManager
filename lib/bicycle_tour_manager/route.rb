@@ -489,6 +489,8 @@ EOS
 		end
 
 		def flatten
+			return [] if @path_list.empty?
+
 			tmp = @path_list.map.with_index do |r, i|
 				if r.steps.length < 2
 					[]
