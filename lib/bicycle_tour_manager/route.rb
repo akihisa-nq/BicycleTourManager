@@ -446,9 +446,6 @@ EOS
 		end
 
 		def set_start_end
-			@start = @steps[0]
-			@end = @steps[-1]
-
 			if @distance == 0.0
 				(@steps.count - 2).times do |i|
 					@distance += @steps[i + 1].distance(@steps[i])
