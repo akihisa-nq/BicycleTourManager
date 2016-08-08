@@ -465,11 +465,15 @@ EOS
 			unless mark_distance_from_start?
 				prev = @steps.first
 				dis = offset
+
 				@steps.each do |s|
 					dis += prev.distance(s)
 					s.distance_from_start = dis
 					prev = s
 				end
+
+				@start.distance_from_start = offset
+				@end.distance_from_start = dis
 			end
 		end
 
