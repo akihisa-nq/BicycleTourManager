@@ -100,6 +100,14 @@ EOS
 			end
 		end
 
+		def dump_direction
+			road = @road.to_a.map {|i| "#{i[0]}:#{j}" }.join(", ")
+			dir = "#{@orig} -> #{@dest}"
+			name = @name
+
+			"@#{road} | #{dir} | #{name}"
+		end
+
 		def valid_direction?
 			(@orig.nil? || ! @road[@orig].nil?) && (@dest.nil? || ! @road[@dest].nil?)
 		end
@@ -223,6 +231,10 @@ EOS
 			(self.distance_from_start - pt.distance_from_start).abs
 		end
 
+		def direction_to(pt)
+			Point.calc_angle(self, pt)
+		end
+
 		attr_accessor :point_geos, :ele, :time, :time_target, :waypoint_index, :distance_from_start, :min_max, :info
 
 		private
@@ -231,7 +243,7 @@ EOS
 		R2 = 6356.752314245
 		E_2 = (R1 ** 2 - R2 ** 2) / (R1 ** 2)
 
-		def self.calc_distance(p1, p2)
+		def self.calc_dx_dy(p1, p2)
 			lat1, lon1 = [p1.lat, p1.lon].map {|a| a * Math::PI / 180.0}
 			lat2, lon2 = [p2.lat, p2.lon].map {|a| a * Math::PI / 180.0}
 			dy = lat2 - lat1
@@ -240,7 +252,21 @@ EOS
 			rot_w = Math.sqrt(1.0  - E_2 * (Math.sin(uy) ** 2))
 			m = R1 * (1 - E_2) * (rot_w ** 3)
 			n = R1 * rot_w
-			Math.sqrt( (dy * m) ** 2 + (dx * n * Math.cos(uy)) ** 2 )
+			[ dx * n * Math.cos(uy), dy * m ]
+		end
+
+		def self.calc_distance(p1, p2)
+			dx, dy = *calc_dx_dy(p1, p2)
+			Math.sqrt( dx ** 2 + dy ** 2 )
+		end
+
+		def self.calc_angle(p1, p2)
+			dx, dy = *calc_dx_dy(p1, p2)
+			dir = Math.atan2( dy, dx )
+			if dir < 0.0
+				dir += 2.0 * Math::PI
+			end
+			dir
 		end
 	end
 
@@ -494,6 +520,8 @@ EOS
 					pt.ele = i["elevation"]
 					pt
 				end
+			@start.ele = @steps.first.ele
+			@end.ele = @steps.last.ele
 		end
 	end
 
@@ -533,10 +561,44 @@ EOS
 			tmp
 		end
 
+		def self.nearetst_direction(dir)
+			direction = [
+				"E", "NE", "N", "NW", "W", "SW", "S", "SE", "E"
+			]
+			direction[((dir + Math::PI / 8.0) / (Math::PI / 4.0)).to_i]
+		end
+
 		def search_route(route_cache, cache_elevation)
+			return if @path_list.count == 0
+
 			@path_list.each do |r|
 				r.search_route(route_cache, cache_elevation)
 			end
+
+			orig_dir = nil
+			@path_list.each.with_index do |r, i|
+				cur = r.start
+
+				if i == 0
+					cur.info.orig = "C"
+				else
+					prev_pt = @path_list[i - 1].steps[-3] || @path_list[i - 1].steps[-2] || @path_list[i - 1].start
+					orig_dir = cur.direction_to(prev_pt)
+					cur.info.orig = Route.nearetst_direction(orig_dir)
+				end
+
+				next_pt = r.steps[2] || r.steps[1] || r.end
+				dest_dir = cur.direction_to(next_pt)
+				cur.info.dest = Route.nearetst_direction(dest_dir)
+				if cur.info.dest == cur.info.orig
+					cur.info.dest = Route.nearetst_direction(orig_dir + Math::PI / 4.0 * (orig_dir - dest_dir < 0.0 ? 1.0 : -1.0))
+				end
+			end
+
+			cur = @path_list.last.end
+			prev_pt = @path_list.last.steps[-3] || @path_list.last.steps[-2] || @path_list.last.start
+			cur.info.orig = Route.nearetst_direction(cur.direction_to(prev_pt))
+			cur.info.dest = "C"
 		end
 
 		def fetch_elevation(cache_elevation)

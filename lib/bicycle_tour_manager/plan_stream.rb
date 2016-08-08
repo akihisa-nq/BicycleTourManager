@@ -138,15 +138,28 @@ module BTM
 EOF
 
 				tour.routes.each do |route|
+					if route.path_list.count > 0
+						node = route.path_list.first.start
+
+						file << <<EOF
+★#{route.index}-1
+#{node.info.dump_direction}
++0km
+position: #{node.lat}, #{node.lon}, #{node.ele}
+
+EOF
+					end
+
 					route.path_list.each.with_index do |path, j|
-						node = path.steps.last
+						node = path.end
 						count += 1
 
 						Path.check_peak(path.steps)
 						grad = Path.check_gradient(path.steps).select {|g| g.grad >= 3 }
 
 						file << <<EOF
-★#{j + 2}
+★#{route.index}-#{j + 2}
+#{node.info.dump_direction}
 +#{path.distance}km
 position: #{node.lat}, #{node.lon}, #{node.ele}
 uphills: #{grad.map {|g| "[ #{g.grad}, #{g.distance} ]" }.join(", ")}

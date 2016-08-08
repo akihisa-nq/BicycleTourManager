@@ -30,9 +30,11 @@ module BTM
 
 		def create_routes(obj)
 			route = Route.new
+			return route if obj.points.count == 0
 
 			path = Path.new
 			path.start = obj.points[0]
+			path.start.info = NodeInfo.new
 
 			current = 0
 			via_current = 0
@@ -48,6 +50,7 @@ module BTM
 
 					path = Path.new
 					path.start = obj.points[cur]
+					path.start.info = NodeInfo.new
 				end
 			end
 

@@ -31,6 +31,6 @@ describe "gmap2route" do
 
 		expect(system("ruby #{bin} #{test_file} #{result_file}")).to eq true
 
-		expect(File.read(result_files[0])).to eq File.read(File.join(File.dirname(__FILE__), "result_grad_ans.txt"))
+		expect(File.read(result_file)).to eq File.read(File.join(File.dirname(__FILE__), "result_grad_ans.txt"))
 	end
 end
