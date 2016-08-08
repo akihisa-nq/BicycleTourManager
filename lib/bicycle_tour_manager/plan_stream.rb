@@ -7,10 +7,13 @@ module BTM
 			plan.start_date = Time.new(2000, 1, 1, 0, 0, 0, 0)
 			plan.routes << Route.new
 			plan.routes.last.index = 1
-			plan.routes.last.path_list << Path.new
 
 			current = Point.new(0.0, 0.0)
 			current.info = NodeInfo.new
+
+			prev = Point.new(0.0, 0.0)
+			prev.info = NodeInfo.new
+
 			limit_speed = 15.0
 			target_speed = 15.0
 			total_distance = 0.0
@@ -59,11 +62,9 @@ module BTM
 					when /^-- PC(\d+) --/
 						plan.routes << Route.new
 						plan.routes.last.index = $1.to_i + 1
-						plan.routes.last.path_list << Path.new
 
 					when /^--\s*$/
-						plan.routes.last.path_list.last.steps.last.info.page_break = true
-						plan.routes.last.path_list << Path.new
+						plan.routes.last.path_list.last.end.info.page_break = true
 
 					when /^-- LIMIT:([\d\.]+) --/
 						current.info.limit_speed = $1.to_f
@@ -96,19 +97,27 @@ module BTM
 
 					when /^\s+$/
 						if need_add
-							plan.routes.last.path_list.last.steps << current
-							need_add = false
-						end
+							if (current.distance_from_start == 0.0 || current.distance_from_start == prev.distance_from_start) && current.info.rest_time == 0.0
+								# 何もしない
+							else
+								plan.routes.last.path_list << Path.new
+								plan.routes.last.path_list.last.start = prev
+								plan.routes.last.path_list.last.end = current
+							end
 
-						current = Point.new(0.0, 0.0)
-						current.info = NodeInfo.new
-						current.info.limit_speed = limit_speed
-						current.info.target_speed = target_speed
+							need_add = false
+
+							prev = current
+							current = Point.new(0.0, 0.0)
+							current.info = NodeInfo.new
+							current.info.limit_speed = limit_speed
+							current.info.target_speed = target_speed
+						end
 
 					else
 						if current.info.parse_direction(line)
 							unless current.info.valid_direction?
-								$stderr << "間違った方向が PC#{plan.routes.count} のページ #{plan.routes.last.path_list.count}、#{plan.routes.last.path_list.last.steps.count} #{current.name} にあります。\n"
+								$stderr << "間違った方向が PC#{plan.routes.count} のページ #{plan.routes.last.path_list.count}、#{plan.routes.last.path_list.count} #{current.name} にあります。\n"
 								exit 1
 							end
 						else
@@ -118,10 +127,12 @@ module BTM
 				end
 
 				if need_add
-					plan.routes.last.path_list.last.steps << current
+					plan.routes.last.path_list << Path.new
+					plan.routes.last.path_list.last.start = prev
+					plan.routes.last.path_list.last.end = current
 				end
 
-				plan.routes.delete_at(-1) if plan.routes.last.path_list.length == 1 && plan.routes.last.path_list.last.steps.length == 0
+				plan.routes.delete_at(-1) if plan.routes.last.path_list.length == 0
 			end
 
 			plan

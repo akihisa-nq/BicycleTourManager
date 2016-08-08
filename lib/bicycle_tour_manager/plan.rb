@@ -97,36 +97,26 @@ module BTM
 
 				plot_graph()
 
-				count = 0
+				count = 1
 				@route.path_list.each do |page|
-					page.steps.each do |node|
-						if node.info
-							count += 1
+					count += 1
 
-							if node.info.page_break? || count >= @per_page
-								count = 0
-								page_max += 1
-							end
-						end
+					if page.end.info.page_break? || count >= @per_page
+						count = 0
+						page_max += 1
 					end
 				end
-				page_max += 1 if count > 0
+				page_max += 1
 
-				@page_node = []
+				@page_node = [ @route.path_list.first.start ]
 				@route.path_list.each do |page|
-					next if page.steps.count == 0
+					@page_node << page.end
 
-					page.steps.each do |node|
-						if node.info
-							@page_node << node
+					if page.end.info.page_break? || @page_node.length >= @per_page
+						block.call(@route, @page_number, page_max)
 
-							if node.info.page_break? || @page_node.length >= @per_page
-								block.call(@route, @page_number, page_max)
-
-								@page_node.clear
-								@page_number += 1
-							end
-						end
+						@page_node.clear
+						@page_number += 1
 					end
 				end
 
