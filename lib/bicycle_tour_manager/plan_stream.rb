@@ -149,6 +149,8 @@ module BTM
 EOF
 
 				tour.routes.each do |route|
+					prev_distance = 0.0
+
 					if route.path_list.count > 0
 						node = route.path_list.first.start
 
@@ -159,6 +161,7 @@ EOF
 position: #{node.lat}, #{node.lon}, #{node.ele}
 
 EOF
+						prev_distance = node.distance_from_start
 					end
 
 					route.path_list.each.with_index do |path, j|
@@ -167,6 +170,22 @@ EOF
 
 						Path.check_peak(path.steps)
 						grad = Path.check_gradient(path.steps).select {|g| g.grad >= 3 }
+
+						if path.steps.count >= 3
+							path.steps[1..-1].each do |s|
+								if s.min_max == :mark_min || s.min_max == :mark_max
+									file << <<EOF
+[pass]
+▲#{s.min_max == :mark_min ? "極小" : "極大"}
++#{s.distance_from_start - prev_distance}km
+position: #{s.lat}, #{s.lon}, #{s.ele}
+
+EOF
+								end
+							end
+						end
+
+						prev_distance = node.distance_from_start
 
 						file << <<EOF
 ★#{route.index}-#{j + 2}
