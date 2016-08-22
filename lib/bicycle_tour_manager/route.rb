@@ -224,7 +224,7 @@ EOS
 		end
 
 		def ele=(val)
-			@point_geos = BTM.factory.point(val, lat, val)
+			@point_geos = BTM.factory.point(lon, lat, val)
 		end
 
 		def position=(pos)
