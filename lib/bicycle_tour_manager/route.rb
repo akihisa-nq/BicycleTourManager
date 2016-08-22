@@ -20,8 +20,9 @@ EOS
 
 	def BTM.factory
 		@@factory ||= RGeo::Geos.factory(
-			:coord_sys => COORD_SYS,
-			:srid => 4326
+			coord_sys: COORD_SYS,
+			srid: 4326,
+			has_z_coordinate: true
 			)
 	end
 
@@ -175,8 +176,7 @@ EOS
 
 	class Point
 		def initialize(lat, lon, ele=0.0)
-			@point_geos = BTM.factory.point(lon, lat)
-			@ele = ele
+			@point_geos = BTM.factory.point(lon, lat, ele)
 			@time = Time.now
 			@waypoint_index = -1
 			@distance_from_start = 0.0
@@ -208,7 +208,7 @@ EOS
 		end
 
 		def lat=(val)
-			@point_geos = BTM.factory.point(lon, val)
+			@point_geos = BTM.factory.point(lon, val, ele)
 		end
 
 		def lon
@@ -216,7 +216,15 @@ EOS
 		end
 
 		def lon=(val)
-			@point_geos = BTM.factory.point(val, lat)
+			@point_geos = BTM.factory.point(val, lat, ele)
+		end
+
+		def ele
+			@point_geos.z
+		end
+
+		def ele=(val)
+			@point_geos = BTM.factory.point(val, lat, val)
 		end
 
 		def position=(pos)
@@ -235,7 +243,7 @@ EOS
 			Point.calc_angle(self, pt)
 		end
 
-		attr_accessor :point_geos, :ele, :time, :time_target, :waypoint_index, :distance_from_start, :min_max, :info
+		attr_accessor :point_geos, :time, :time_target, :waypoint_index, :distance_from_start, :min_max, :info
 
 		private
 
