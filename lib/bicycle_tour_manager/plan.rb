@@ -111,13 +111,17 @@ module BTM
 				page_max += 1
 
 				@page_node = [ @route.path_list.first.start ]
+				count = 1.0
+
 				@route.path_list.each do |page|
 					@page_node << page.end
+					count += (page.end.info.pass ? 0.5 : 1.0)
 
-					if page.end.info.page_break? || @page_node.length >= @per_page
+					if page.end.info.page_break? || count >= @per_page
 						block.call(@route, @page_number, page_max)
 
 						@page_node.clear
+						count = 0.0
 						@page_number += 1
 					end
 				end
@@ -235,9 +239,9 @@ module BTM
 			end
 
 			if ret
-				@status = "å®Œäº†"
+				@status = "Š®—¹"
 			elsif not usable?
-				@status = "ä½¿ç”¨ä¸­"
+				@status = "Žg—p’†"
 			else
 				@status = ""
 			end
