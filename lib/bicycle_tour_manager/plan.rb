@@ -99,12 +99,12 @@ module BTM
 
 				plot_graph()
 
-				count = 1
+				count = 1.0
 				@route.path_list.each do |page|
-					count += 1
+					count += (page.pass ? 0.5 : 1.0)
 
 					if page.end.info.page_break? || count >= @per_page
-						count = 0
+						count = 0.0
 						page_max += 1
 					end
 				end
