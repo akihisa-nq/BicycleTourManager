@@ -14,6 +14,8 @@ module BTM
 			@node.time = plan.start_date
 			@node.time_target = plan.start_date
 
+			@node_base = @node
+
 			@distance_addition = 0.0
 			@time_addtion = 0.0
 			@target_time_addtion = 0.0
@@ -167,18 +169,19 @@ module BTM
 		end
 
 		def increment(node)
-			@distance_addition = node.distance_on_path(@node)
+			@distance_addition = node.distance_on_path(@node_base)
 
-			@time_addition = (@distance_addition / @node.info.limit_speed * 3600).to_i
-			@target_time_addition = ((@distance_addition / @node.info.target_speed + node.info.rest_time) * 3600).to_i
+			@time_addition = (@distance_addition / @node_base.info.limit_speed * 3600).to_i
+			@target_time_addition = ((@distance_addition / @node_base.info.target_speed + node.info.rest_time) * 3600).to_i
 
-			node.time = @node.time + @time_addition
-			node.time_target = @node.time_target + @target_time_addition
+			node.time = @node_base.time + @time_addition
+			node.time_target = @node_base.time_target + @target_time_addition
 
 			@pc.increment(@time_addition, @target_time_addition)
 
+			@node = node
 			if node.info && ! node.info.pass
-				@node = node
+				@node_base = node
 			end
 		end
 	end
