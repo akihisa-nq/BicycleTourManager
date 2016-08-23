@@ -162,7 +162,6 @@ module BTM
 					@plotter.elevation_min = (min / 100) * 100 - 100
 					@plotter.elevation_max = [@plotter.elevation_min + 1100, ((max - 1) / 100 + 1) * 100].max + 100
 					@plotter.distance_offset = @route.path_list[0].steps[0].distance_from_start
-					@plotter.waypoint_offset = 0
 
 					path = File.join(@work_dir, "PC#{@route.index}.png")
 					@plotter.plot(@route, path)

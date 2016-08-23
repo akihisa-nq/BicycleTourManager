@@ -178,6 +178,7 @@ EOS
 		def initialize(lat, lon, ele=0.0)
 			@point_geos = BTM.factory.point(lon, lat, ele)
 			@time = Time.now
+			@route_index = -1
 			@waypoint_index = -1
 			@distance_from_start = 0.0
 			@min_max = nil # nil, :mark, :mark_min, :mark_max
@@ -243,7 +244,7 @@ EOS
 			Point.calc_angle(self, pt)
 		end
 
-		attr_accessor :point_geos, :time, :time_target, :waypoint_index, :distance_from_start, :min_max, :info
+		attr_accessor :point_geos, :time, :time_target, :route_index, :waypoint_index, :distance_from_start, :min_max, :info
 
 		private
 
@@ -543,12 +544,17 @@ EOS
 		def flatten
 			return [] if @path_list.empty?
 
-			tmp = @path_list.map.with_index do |r, i|
+			path_index = 0
+
+			tmp = @path_list.map do |r|
 				if r.steps.length < 2
 					[]
 				else
 					steps = r.steps[0..-2].map {|s| s.dup }
-					steps[0].waypoint_index = i + 1
+					if ! r.start.info || ! r.start.info.pass
+						steps[0].waypoint_index = path_index + 1
+						path_index += 1
+					end
 					steps
 				end
 			end
@@ -557,7 +563,7 @@ EOS
 			if @path_list[-1].steps.count > 0
 				tmp << @path_list[-1].steps[-1].dup
 			end
-			tmp[-1].waypoint_index = @path_list.size + 1
+			tmp[-1].waypoint_index = path_index + 1
 
 			prev = tmp[0]
 			distance = 0.0
@@ -666,7 +672,7 @@ EOS
 
 				f.each do |p|
 					if p.waypoint_index > 0
-						p.waypoint_index += 100 * i
+						p.route_index = i + 1
 					end
 
 					p.distance_from_start += offset

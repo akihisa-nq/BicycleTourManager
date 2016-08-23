@@ -158,7 +158,7 @@ EOF
 					route.way_points.each do |wpt|
 						write_way_point(file, pc.index, wpt, i)
 
-						unless wpt.info.pass
+						unless wpt.info && wpt.info.pass
 							i += 1
 						end
 					end
@@ -222,7 +222,7 @@ EOF
 EOF
 			end
 
-			if wpt.info.pass
+			if wpt.info && wpt.info.pass
 				file << <<EOF
 		<name>#{wpt.min_max == :mark_min ? "▼" : "▲" }</name>
 		<sym>#{wpt.min_max == :mark_min ? "Bottom" : "Peak" }</sym>

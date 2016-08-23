@@ -23,7 +23,6 @@ module BTM
 			@scale = 1.0
 			@label = true
 			@distance_offset = 0.0
-			@waypoint_offset = 0
 		end
 
 		def plot(route, outfile)
@@ -59,7 +58,13 @@ module BTM
 						  || pt.distance_from_start - prev_waypoint.distance_from_start >= 2.5 \
 						  || (pt.ele - prev_waypoint.ele).abs >= 100.0
 						then
-							waypoint << "#{pt.distance_from_start} #{pt.ele} ★#{@waypoint_offset + pt.waypoint_index}\\n\n"
+							name = "★"
+							if pt.route_index > 0
+								name += "#{pt.route_index}-"
+							end
+							name += pt.waypoint_index.to_s
+
+							waypoint << "#{pt.distance_from_start} #{pt.ele} #{name}\\n\n"
 							prev_waypoint = pt
 						end
 					end
@@ -202,7 +207,7 @@ module BTM
 			tmp_files.each {|f| File.delete(f) }
 		end
 
-		attr_accessor :elevation_max, :elevation_min, :distance_offset, :distance_max, :waypoint_offset, :scale, :font, :label,
+		attr_accessor :elevation_max, :elevation_min, :distance_offset, :distance_max, :scale, :font, :label,
 			:margins_with_label, :margins_without_label
 	end
 end
