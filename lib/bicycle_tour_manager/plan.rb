@@ -239,9 +239,9 @@ module BTM
 			end
 
 			if ret
-				@status = "Š®—¹"
+				@status = "å®Œäº†"
 			elsif not usable?
-				@status = "Žg—p’†"
+				@status = "ä½¿ç”¨ä¸­"
 			else
 				@status = ""
 			end
