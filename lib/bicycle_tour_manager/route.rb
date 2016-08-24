@@ -731,7 +731,7 @@ EOS
 			elevation = 0.0
 			prev = nil
 			pts.each do |s|
-				if s.min_max == :mark_max
+				if prev && s.min_max == :mark_max
 					elevation += s.ele - prev.ele
 					prev = nil
 				elsif s.min_max_marked? && (prev.nil? || prev.ele > s.ele)
