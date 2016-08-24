@@ -341,6 +341,39 @@ EOS
 				prev_min = i
 			end
 
+			# 開始/終了点もマークはしておく
+			tmp[1..-2].each do |p|
+				if p.min_max
+					if p.min_max == :mark_max
+						tmp[0].min_max = :mark_min
+					elsif p.min_max == :mark_min
+						tmp[0].min_max = :mark_max
+					end
+					break
+				end
+			end
+
+			tmp[1..-2].reverse.each do |p|
+				if p.min_max
+					if p.min_max == :mark_max
+						tmp[-1].min_max = :mark_min
+					elsif p.min_max == :mark_min
+						tmp[-1].min_max = :mark_max
+					end
+					break
+				end
+			end
+
+			if tmp[0].min_max == :mark
+				if tmp[0].ele < tmp[-1].ele
+					tmp[0].min_max = :mark_min
+					tmp[-1].min_max = :mark_max
+				else
+					tmp[0].min_max = :mark_max
+					tmp[-1].min_max = :mark_min
+				end
+			end
+
 			tmp
 		end
 

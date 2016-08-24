@@ -28,11 +28,11 @@ describe Path do
 		path.steps << Point.new(34.9799845275, 135.7883505989, 28.0)
 		path.steps << Point.new(34.9799845275, 135.7883505989, 25.0)
 		Path.check_peak(path.steps)
-		expect(path.steps[0].min_max).to eq :mark
+		expect(path.steps[0].min_max).to eq :mark_max
 		expect(path.steps[1].min_max).to eq :mark_min
 		expect(path.steps[2].min_max).to eq nil
 		expect(path.steps[3].min_max).to eq :mark_max
-		expect(path.steps[4].min_max).to eq :mark
+		expect(path.steps[4].min_max).to eq :mark_min
 	end
 
 	it "check peak monotonic increse" do
@@ -43,11 +43,11 @@ describe Path do
 		path.steps << Point.new(34.9799845275, 135.7883505989, 28.0)
 		path.steps << Point.new(34.9799845275, 135.7883505989, 29.0)
 		Path.check_peak(path.steps)
-		expect(path.steps[0].min_max).to eq :mark
+		expect(path.steps[0].min_max).to eq :mark_min
 		expect(path.steps[1].min_max).to eq nil
 		expect(path.steps[2].min_max).to eq nil
 		expect(path.steps[3].min_max).to eq nil
-		expect(path.steps[4].min_max).to eq :mark
+		expect(path.steps[4].min_max).to eq :mark_max
 	end
 
 	it "check peak monotonic decrese" do
@@ -58,11 +58,11 @@ describe Path do
 		path.steps << Point.new(34.9789209478, 135.7896461897, 5.0)
 		path.steps << Point.new(34.9789209478, 135.7896461897, 4.0)
 		Path.check_peak(path.steps)
-		expect(path.steps[0].min_max).to eq :mark
+		expect(path.steps[0].min_max).to eq :mark_max
 		expect(path.steps[1].min_max).to eq nil
 		expect(path.steps[2].min_max).to eq nil
 		expect(path.steps[3].min_max).to eq nil
-		expect(path.steps[4].min_max).to eq :mark
+		expect(path.steps[4].min_max).to eq :mark_min
 	end
 
 	it "check peak with big data" do
