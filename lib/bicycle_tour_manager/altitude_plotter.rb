@@ -70,7 +70,7 @@ module BTM
 					end
 
 					if pt.min_max_marked?
-						if pt.min_max == :mark_max
+						if prev_peak && pt.min_max == :mark_max
 							diff_dis = pt.distance_from_start - prev_peak.distance_from_start
 							diff_ele = pt.ele - prev_peak.ele
 							grad_val = diff_ele / diff_dis / 10.0
