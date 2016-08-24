@@ -411,26 +411,26 @@ EOS
 
 			prev = 0
 			tmp.each.with_index do |e, i|
-				unless e.min_max.nil?
-					if e.min_max == :mark_max
-						ret = calc.call(prev, i)
-						next if ret.size == 0
+				next if e.min_max.nil?
 
-						current = 0
-						while current + 1 < ret.size
-							if ret[current].grad == ret[current + 1].grad
-								ret[current].start = ret[current].start
-								ret[current].end = ret[current + 1].end
-								ret.delete_at(current + 1)
-							else
-								current += 1
-							end
+				if e.min_max == :mark_max
+					ret = calc.call(prev, i)
+					next if ret.size == 0
+
+					current = 0
+					while current + 1 < ret.size
+						if ret[current].grad == ret[current + 1].grad
+							ret[current].start = ret[current].start
+							ret[current].end = ret[current + 1].end
+							ret.delete_at(current + 1)
+						else
+							current += 1
 						end
-
-						result += ret
-					else
-						prev = i
 					end
+
+					result += ret
+				else
+					prev = i
 				end
 			end
 
