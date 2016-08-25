@@ -183,6 +183,7 @@ EOS
 			@distance_from_start = 0.0
 			@min_max = nil # nil, :mark, :mark_min, :mark_max
 			@info = nil
+			@next_peak = nil
 		end
 
 		def self.from_params(params)
@@ -244,7 +245,7 @@ EOS
 			Point.calc_angle(self, pt)
 		end
 
-		attr_accessor :point_geos, :time, :time_target, :route_index, :waypoint_index, :distance_from_start, :min_max, :info
+		attr_accessor :point_geos, :time, :time_target, :route_index, :waypoint_index, :distance_from_start, :min_max, :info, :next_peak
 
 		private
 
@@ -289,6 +290,8 @@ EOS
 
 			prev = 0
 			prev_min = 0
+			prev_min_marked = 0
+			prev_max_marked = 0
 			(1..tmp.length-2).each do |i|
 				current = tmp[i]
 
@@ -324,18 +327,30 @@ EOS
 							tmp[prev].min_max = nil
 							current.min_max = :mark_min
 							prev = i
+
+							prev_max_marked = i
+							tmp[prev_min_marked].next_peak = current
 						end
 					else
 						current.min_max = :mark_min
 						prev = i
+
+						prev_min_marked = i
+						tmp[prev_max_marked].next_peak = current
 					end
 				else
 					if prev_min > 0 && tmp[prev].min_max == :mark_max
 						tmp[prev_min].min_max = :mark_min
+
+						prev_min_marked = i
+						tmp[prev_max_marked].next_peak = current
 					end
 
 					current.min_max = :mark_max
 					prev = i
+
+					prev_max_marked = i
+					tmp[prev_min_marked].next_peak = current
 				end
 
 				prev_min = i
@@ -353,12 +368,14 @@ EOS
 				end
 			end
 
-			tmp[1..-2].reverse.each do |p|
+			tmp[1..-2].reverse.each.with_index do |p, i|
 				if p.min_max
 					if p.min_max == :mark_max
 						tmp[-1].min_max = :mark_min
+						tmp[-2 - i].next_peak = tmp[-1]
 					elsif p.min_max == :mark_min
 						tmp[-1].min_max = :mark_max
+						tmp[-2 - i].next_peak = tmp[-1]
 					end
 					break
 				end
@@ -372,6 +389,7 @@ EOS
 					tmp[0].min_max = :mark_max
 					tmp[-1].min_max = :mark_min
 				end
+				tmp[0].next_peak = tmp[-1]
 			end
 
 			tmp
