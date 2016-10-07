@@ -3,7 +3,7 @@
 require "open3"
 
 module BTM
-	class AltitudePloter
+	class AltitudeDataGenerator
 		PEAK_LIMIT_DISTANCE = 0.5
 		PEAK_LIMIT_GRADIENT = 3.0
 		PEAK_LIMIT_DISTANCE_LONG = 5.0
@@ -13,6 +13,81 @@ module BTM
 		GRAD_LIMIT_DISTANCE_LONG = 5.0
 		GRAD_LIMIT_GRADIENT_LONG = 2.0
 
+		def self.generate(route, offset, &block)
+			# フラット化
+			tmp = route.flatten
+			tmp.each do |s|
+				s.distance_from_start += offset
+			end
+
+			# ピークをマーク
+			Path.check_peak(tmp)
+
+			# 傾斜を計算
+			grads = Path.check_gradient(tmp)
+
+			prev_waypoint = nil
+			prev_peak = nil
+
+			tmp.each.with_index do |pt, i|
+				block.call(:graph, { distance: pt.distance_from_start, elevation: pt.ele })
+
+				if pt.waypoint?
+					if prev_waypoint.nil? \
+					  || pt.distance_from_start - prev_waypoint.distance_from_start >= 2.5 \
+					  || (pt.ele - prev_waypoint.ele).abs >= 100.0
+					then
+						name = "★"
+						if pt.route_index > 0
+							name += "#{pt.route_index}-"
+						end
+						name += pt.waypoint_index.to_s
+						block.call(:waypoint, { distance: pt.distance_from_start, elevation: pt.ele, name: name })
+						prev_waypoint = pt
+					end
+				end
+
+				if pt.min_max_marked?
+					if prev_peak && pt.min_max == :mark_max
+						diff_dis = pt.distance_from_start - prev_peak.distance_from_start
+						diff_ele = pt.ele - prev_peak.ele
+						grad_val = diff_ele / diff_dis / 10.0
+
+						if diff_dis >= PEAK_LIMIT_DISTANCE && grad_val >= PEAK_LIMIT_GRADIENT \
+							|| (grad_val >= PEAK_LIMIT_GRADIENT_LONG && diff_dis >= PEAK_LIMIT_DISTANCE_LONG)
+						then
+							block.call(:peak, {distance: pt.distance_from_start, elevation: pt.ele})
+						end
+					end
+
+					prev_peak = pt
+				end
+			end
+
+			grads.each do |e|
+				diff_dis = e.end.distance_from_start - e.start.distance_from_start
+
+				if e.grad >= GRAD_LIMIT_GRADIENT \
+					|| (e.grad >= GRAD_LIMIT_GRADIENT_LONG && diff_dis >= GRAD_LIMIT_DISTANCE_LONG)
+				then
+					block.call(:gradient, {
+						start: {
+							distance: e.start.distance_from_start,
+							elevation: e.start.ele
+						},
+						end: {
+							distance: e.end.distance_from_start,
+							elevation: e.end.ele
+						},
+						distance_difference: diff_dis,
+						gradient: e.grad
+					})
+				end
+			end
+		end
+	end
+
+	class AltitudePloter
 		def initialize(gnuplot, tmpdir)
 			@gnuplot = gnuplot
 			@tmpdir = tmpdir
@@ -31,80 +106,35 @@ module BTM
 				end
 			graph_data, waypoint_data, peak_data, gradient_data, gradient_label_data = *tmp_files
 
-			# フラット化
-			tmp = route.flatten
-			tmp.each do |s|
-				s.distance_from_start += @distance_offset
-			end
-
-			# ピークをマーク
-			Path.check_peak(tmp)
-
-			# 傾斜を計算
-			grads = Path.check_gradient(tmp)
-
 			File.open(graph_data, "w") do |graph|
 			File.open(waypoint_data, "w") do |waypoint|
 			File.open(peak_data, "w") do |peak|
-				# データ ファイルを出力
-				prev_waypoint = nil
-				prev_peak = nil
-
-				tmp.each.with_index do |pt, i|
-					graph << "#{pt.distance_from_start} #{pt.ele}\n"
-
-					if pt.waypoint?
-						if prev_waypoint.nil? \
-						  || pt.distance_from_start - prev_waypoint.distance_from_start >= 2.5 \
-						  || (pt.ele - prev_waypoint.ele).abs >= 100.0
-						then
-							name = "★"
-							if pt.route_index > 0
-								name += "#{pt.route_index}-"
-							end
-							name += pt.waypoint_index.to_s
-
-							waypoint << "#{pt.distance_from_start} #{pt.ele} #{name}\\n\n"
-							prev_waypoint = pt
-						end
-					end
-
-					if pt.min_max_marked?
-						if prev_peak && pt.min_max == :mark_max
-							diff_dis = pt.distance_from_start - prev_peak.distance_from_start
-							diff_ele = pt.ele - prev_peak.ele
-							grad_val = diff_ele / diff_dis / 10.0
-
-							if diff_dis >= PEAK_LIMIT_DISTANCE && grad_val >= PEAK_LIMIT_GRADIENT \
-								|| (grad_val >= PEAK_LIMIT_GRADIENT_LONG && diff_dis >= PEAK_LIMIT_DISTANCE_LONG)
-							then
-								peak << "#{pt.distance_from_start} #{pt.ele} #{pt.ele.to_i}\n"
-							end
-						end
-
-						prev_peak = pt
-					end
-				end
-			end; end; end
-
 			File.open(gradient_data, "w") do |grad|
 			File.open(gradient_label_data, "w") do |grad_label|
-				grads.each do |e|
-					diff_dis = e.end.distance_from_start - e.start.distance_from_start
+				# データ ファイルを出力
+				AltitudeDataGenerator.generate(route, @distance_offset) do |type, data|
+					case type
+					when :graph
+						graph << "#{data[:distance]} #{data[:elevation]}\n"
 
-					if e.grad >= GRAD_LIMIT_GRADIENT \
-						|| (e.grad >= GRAD_LIMIT_GRADIENT_LONG && diff_dis >= GRAD_LIMIT_DISTANCE_LONG)
-					then
-						grad << "#{e.start.distance_from_start} #{e.start.ele} -50 #{e.start.distance_from_start.round}\\n+#{diff_dis.round}\n"
-						grad << "#{e.end.distance_from_start} #{e.end.ele}\n"
+					when :waypoint
+						waypoint << "#{data[:distance]} #{data[:elevation]} #{data[:name]}\\n\n"
+
+					when :peak
+						peak << "#{data[:distance]} #{data[:elevation]} #{data[:elevation].to_i}\n"
+
+					when :gradient
+						grad << "#{data[:start][:distance]} #{data[:start][:distance]} -50 #{data[:start][:distance].round}\\n+#{data[:distance_difference].round}\n"
+						grad << "#{data[:end][:distance]} #{data[:end][:elevation]}\n"
 						grad << "\n"
 
-						dis = (e.start.distance_from_start + e.end.distance_from_start) / 2
-						ele = (e.start.ele + e.end.ele) / 2
-						grad_label << "#{dis} #{ele} #{e.grad}%\n"
+						dis = (data[:start][:distance] + data[:end][:distance]) / 2
+						ele = (data[:start][:elevation] + data[:end][:elevation]) / 2
+						grad_label << "#{dis} #{ele} #{data[:gradient]}%\n"
+
 					end
 				end
-			end; end
+			end; end; end; end; end
 
 			Open3.popen3( "\"#{@gnuplot}\" -persist" ) do |pipe, unused1, unused2, thread|
 				unused1.close
