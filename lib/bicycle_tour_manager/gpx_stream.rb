@@ -224,7 +224,7 @@ EOF
 
 			if wpt.info && wpt.info.pass
 				file << <<EOF
-		<name>#{wpt.min_max == :mark_min ? "▼" : "▲" }</name>
+		<name></name>
 		<sym>#{wpt.min_max == :mark_min ? "Bottom" : "Peak" }</sym>
 EOF
 			else
