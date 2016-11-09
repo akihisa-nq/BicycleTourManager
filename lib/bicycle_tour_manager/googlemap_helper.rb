@@ -26,8 +26,8 @@ module BTM
 		end
 
 		def self.lonlat_bounding_box(x1, y1, x2, y2, zoom)
-			tx1, ty1 = *from_tile_to_lonlat(x1, y1, zoom)
-			tx2, ty2 = *from_tile_to_lonlat(x2, y2, zoom)
+			tx1, ty1 = *from_lonlat_to_tile(x1, y1, zoom)
+			tx2, ty2 = *from_lonlat_to_tile(x2, y2, zoom)
 			[tx1, ty1, tx2, ty2, tx2 - tx1, ty2 - ty1]
 		end
 
